@@ -179,6 +179,63 @@ void SEMU_SSD1331::enableDisplay(boolean enable) {
 
 /**************************************************************************/
 /*!
+    @brief  Paints a full colour image from flash memory (PROGMEM)
+    @param    x0    x (horizontal) starting display coordinate
+    @param    y0    y (vertical) starting display coordinate
+    @param    *img  pointer to PROGMEM image bitmap
+*/
+/**************************************************************************/
+void SEMU_SSD1331::drawImage(uint16_t x0, uint16_t y0, const tImage *img) {
+
+	uint16_t x, y, px, color;
+	bool skipping = false;
+	const uint16_t * imageData = PROGMEM_read(&img->data);// copy pixels from flash (program) memory into SRAM (data) memory
+	uint16_t iWidth = pgm_read_word(&img->width);      // copy image width
+	uint16_t iHeight = pgm_read_word(&img->height);    // copy image height
+	//uint16_t iSize = pgm_read_word(&img->pixels);      // copy number of pixels in image
+	//uint8_t  iDepth = pgm_read_byte(&img->depth);      // copy number of bits per pixel (i.e. colour depth)
+	bool     isTrans = pgm_read_byte(&img->istrans);   // whether image is transparent or not
+	uint16_t iTcolor = pgm_read_word(&img->tcolor);    // color to be rendered as transparent, if above flag is set
+
+	//goTo(x0, y0);                                      // initialise cursor to top left
+	px = 0;
+	
+	for (y = y0; y < y0 + iHeight; y++) {
+		setCursor(x0, y);
+		for (x = x0; x < x0 + iWidth; x++) {
+			color = pgm_read_word(&imageData[px]);
+			// if this pixel transparent colour, skip it
+			if ((isTrans) && (color == iTcolor)) {
+				skipping = true;
+			}
+			// otherwise, draw the pixel
+			else {
+				if (skipping) {
+					skipping = false;
+					setCursor(x, y);
+				}
+				pushColor(color);
+			}
+			px++;
+		}
+	}
+
+}
+
+/**************************************************************************/
+/*!
+    @brief  Paints a full colour image from flash memory (PROGMEM) at default coordinates
+    @param    *img  pointer to PROGMEM image bitmap
+*/
+/**************************************************************************/
+void SEMU_SSD1331::drawImage(const tImage *img) {
+
+	drawImage(0,0,img);
+
+}
+
+/**************************************************************************/
+/*!
     @brief  Change hardware orientation of display
     @param	orientation Set to required orientation mode
 */

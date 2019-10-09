@@ -164,6 +164,8 @@ class SEMU_SSD1331 : public Adafruit_SPITFT {
   void setAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
 
   void enableDisplay(boolean enable);
+  void drawImage(uint16_t x0, uint16_t y0, const tImage *img);
+  void drawImage(const tImage *img);
   void setDisplayMode(uint8_t mode);
   void setOrientation(uint8_t orientation);
   void setGrayScale(float gamma);
