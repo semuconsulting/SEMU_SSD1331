@@ -183,7 +183,7 @@ void SEMU_SSD1331::enableDisplay(boolean enable) {
     @param	orientation Set to required orientation mode
 */
 /**************************************************************************/
-void SEMU_SSD1331::setOrientation(int8_t orientation) {
+void SEMU_SSD1331::setOrientation(uint8_t orientation) {
 
 switch (orientation) {
 	
@@ -234,7 +234,7 @@ switch (orientation) {
 	
 */
 /**************************************************************************/
-void SEMU_SSD1331::setDisplayMode(int8_t mode) {
+void SEMU_SSD1331::setDisplayMode(uint8_t mode) {
 
 	switch (mode) {
 	
@@ -294,8 +294,8 @@ void SEMU_SSD1331::setGrayScale(float gamma) {
 	
 */
 /**************************************************************************/
-void SEMU_SSD1331::clearWindow(int16_t x0, int16_t y0, int16_t x1,
-	int16_t y1) {
+void SEMU_SSD1331::clearWindow(uint16_t x0, uint16_t y0, uint16_t x1,
+	uint16_t y1) {
 
 	startWrite();
 	writeCommand(SSD1331_CMD_CLEAR);
