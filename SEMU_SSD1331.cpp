@@ -219,8 +219,10 @@ switch (orientation) {
 	}
 	
 	_orientation = orientation;
-	sendCommand(SSD1331_CMD_SETREMAP);
-	sendCommand(orientation);
+	startWrite();
+	writeCommand(SSD1331_CMD_SETREMAP);
+	writeCommand(orientation);
+	endWrite();
 	delayMicroseconds(SSD1331_DELAYS_HWFILL);
 	
 }
@@ -266,16 +268,20 @@ void SEMU_SSD1331::setGrayScale(float gamma) {
 	uint8_t i, pw;
 
 	if (gamma == 1.0) { // linear curve
-		sendCommand(SSD1331_CMD_RESETGRAYSCALE);
+		startWrite();
+		writeCommand(SSD1331_CMD_RESETGRAYSCALE);
+		endWrite();
 	}
 	else { // exponential curve - +ve is darker, -ve is lighter
-		sendCommand(SSD1331_CMD_SETGRAYSCALE);
+		startWrite();
+		writeCommand(SSD1331_CMD_SETGRAYSCALE);
 		for (i = 0; i < 32; i++) {
 			pw = 125.0 * pow((i * 2.0 + 1.0) / 63.0, gamma);
-			sendCommand(pw);
+			writeCommand(pw);
 		}
+		endWrite();
 	}
-
+	
 }
 
 /**************************************************************************/
@@ -291,11 +297,13 @@ void SEMU_SSD1331::setGrayScale(float gamma) {
 void SEMU_SSD1331::clearWindow(int16_t x0, int16_t y0, int16_t x1,
 	int16_t y1) {
 
-	sendCommand(SSD1331_CMD_CLEAR);
-	sendCommand(x0);
-	sendCommand(y0);
-	sendCommand(x1);
-	sendCommand(y1);
+	startWrite();
+	writeCommand(SSD1331_CMD_CLEAR);
+	writeCommand(x0);
+	writeCommand(y0);
+	writeCommand(x1);
+	writeCommand(y1);
+	endWrite();
 	delayMicroseconds(SSD1331_DELAYS_HWFILL);
 
 }
@@ -349,13 +357,15 @@ void SEMU_SSD1331::setScroll(uint8_t x_speed, uint8_t y_speed,
 	}
 
 	// set new scroll parameters
-	sendCommand(SSD1331_CMD_SETSCROLL);
-	delayMicroseconds(SSD1331_DELAYS_HWFILL);
-	sendCommand(x_speed); // horizontal offset per step i.e. horizontal scroll speed
-	sendCommand(y0);			// start row for scroll
-	sendCommand(rows);			// number of scrolling rows
-	sendCommand(y_speed);// vertical offset per step i.e. vertical scroll speed
-	sendCommand(interval); // time interval between scroll steps 0 = 6 frames per scroll step, 1 = 10 frames, 2 = 100 frames, 3 = 200 frames
+	startWrite();
+	writeCommand(SSD1331_CMD_SETSCROLL);
+	//delayMicroseconds(SSD1331_DELAYS_HWFILL);
+	writeCommand(x_speed); // horizontal offset per step i.e. horizontal scroll speed
+	writeCommand(y0);			// start row for scroll
+	writeCommand(rows);			// number of scrolling rows
+	writeCommand(y_speed);// vertical offset per step i.e. vertical scroll speed
+	writeCommand(interval); // time interval between scroll steps 0 = 6 frames per scroll step, 1 = 10 frames, 2 = 100 frames, 3 = 200 frames
+	endWrite();
 	delayMicroseconds(SSD1331_DELAYS_HWFILL);
 	
 	if (x_speed > 0) {_scrollmode |= SSD1331_SCROLL_X;}
