@@ -646,3 +646,160 @@ void SEMU_SSD1331::drawMaskedSegment(uint16_t x0, uint16_t y0,
 	endWrite();
 	
 }
+
+/**************************************************************************/
+/*!
+    @brief  Draws a line using hardware DRAWLINE command
+    @param   x0    x (horizontal) starting line coordinate
+    @param   y0    y (vertical) starting line coordinate
+    @param   x1    x (horizontal) starting line coordinate
+	  @param   y1    y (vertical) ending line coordinate
+	  @param   color color of line
+*/
+/**************************************************************************/
+void SEMU_SSD1331::drawLine(int16_t x0, int16_t y0, int16_t x1,
+	int16_t y1, uint16_t color) {
+
+	startWrite();
+	writeCommand(SSD1331_CMD_DRAWLINE);
+	writeCommand(x0);
+	writeCommand(y0);
+	writeCommand(x1);
+	writeCommand(y1);
+	// delayMicroseconds (SSD1331_DELAYS_HWLINE);
+	writeCommand((uint8_t)((color >> 11) << 1));
+	writeCommand((uint8_t)((color >> 5) & 0x3F));
+	writeCommand((uint8_t)((color << 1) & 0x3F));
+	endWrite();
+	delayMicroseconds(SSD1331_DELAYS_HWLINE);
+	
+}
+
+/**************************************************************************/
+/*!
+    @brief  Draws a rectangular box using hardware DRAWRECT and FILL commands
+    @param   x0    x (horizontal) starting rectangle coordinate
+    @param   y0    y (vertical) starting rectangle coordinate
+    @param   w     width of rectangle
+	  @param   h     height of rectangle
+	  @param   color color of rectangle border
+*/
+/**************************************************************************/
+void SEMU_SSD1331::drawRect(int16_t x0, int16_t y0, int16_t w, int16_t h, 
+  uint16_t color) {
+
+	startWrite();
+	writeCommand(SSD1331_CMD_FILL);
+	writeCommand(false);
+	writeCommand(SSD1331_CMD_DRAWRECT);
+	writeCommand(x0);
+	writeCommand(y0);
+	writeCommand(x0 + w);
+	writeCommand(y0 + h);
+	delayMicroseconds(SSD1331_DELAYS_HWLINE);
+	writeCommand((uint8_t)((color >> 11) << 1));
+	writeCommand((uint8_t)((color >> 5) & 0x3F));
+	writeCommand((uint8_t)((color << 1) & 0x3F));
+	delayMicroseconds(SSD1331_DELAYS_HWLINE);
+	writeCommand((uint8_t)((color >> 11) << 1));
+	writeCommand((uint8_t)((color >> 5) & 0x3F));
+	writeCommand((uint8_t)((color << 1) & 0x3F));
+	endWrite();
+	delayMicroseconds(SSD1331_DELAYS_HWFILL);
+	
+}
+
+/**************************************************************************/
+/*!
+    @brief  Draws a filled rectangle using hardware DRAWRECT and FILL commands
+    @param   x0    x (horizontal) starting rectangle coordinate
+    @param   y0    y (vertical) starting rectangle coordinate
+    @param   w     width of rectangle
+	  @param   h     height of rectangle
+	  @param   color color of rectangle border
+*/
+/**************************************************************************/
+void SEMU_SSD1331::fillRect(int16_t x0, int16_t y0, int16_t w, int16_t h, 
+  uint16_t color) {
+
+	// Enable hardware rectangle fill mode
+	startWrite();
+	writeCommand(SSD1331_CMD_FILL);
+	writeCommand(true);
+	writeCommand(SSD1331_CMD_DRAWRECT);
+	writeCommand(x0);
+	writeCommand(y0);
+	writeCommand(x0 + w);
+	writeCommand(y0 + h);
+	delayMicroseconds(SSD1331_DELAYS_HWLINE);
+	writeCommand((uint8_t)((color >> 11) << 1));
+	writeCommand((uint8_t)((color >> 5) & 0x3F));
+	writeCommand((uint8_t)((color << 1) & 0x3F));
+	delayMicroseconds(SSD1331_DELAYS_HWLINE);
+	writeCommand((uint8_t)((color >> 11) << 1));
+	writeCommand((uint8_t)((color >> 5) & 0x3F));
+	writeCommand((uint8_t)((color << 1) & 0x3F));
+	endWrite();
+	delayMicroseconds(SSD1331_DELAYS_HWFILL);
+	
+}
+
+/**************************************************************************/
+/*!
+    @brief  Draws a vertical line using hardware DRAWLINE command
+    @param   x0    x (horizontal) starting line coordinate
+    @param   y0    y (vertical) starting line coordinate
+	  @param   h     height of line
+	  @param   color color of line
+*/
+/**************************************************************************/
+void SEMU_SSD1331::drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color) {
+
+	drawLine(x, y, x, y+h, color);
+	
+}
+  
+/**************************************************************************/
+/*!
+    @brief  Draws a horizontal line using hardware DRAWLINE command
+    @param   x0    x (horizontal) starting line coordinate
+    @param   y0    y (vertical) starting line coordinate
+    @param   w     width of line
+	  @param   color color of line
+*/
+/**************************************************************************/  
+void SEMU_SSD1331::drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color) {
+
+	drawLine(x, y, x+w, y, color);
+
+}
+
+/**************************************************************************/
+/*!
+    @brief  Fills screen with specified color using hardware FILL command
+	  @param   color fill color
+*/
+/**************************************************************************/
+void SEMU_SSD1331::fillScreen(uint16_t color) {
+
+	// Enable hardware rectangle fill mode
+	startWrite();
+	writeCommand(SSD1331_CMD_FILL);
+	writeCommand(true);
+	writeCommand(SSD1331_CMD_DRAWRECT);
+	writeCommand(0);
+	writeCommand(0);
+	writeCommand(TFTWIDTH - 1);
+	writeCommand(TFTHEIGHT - 1);
+	delayMicroseconds(SSD1331_DELAYS_HWLINE);
+	writeCommand((uint8_t)((color >> 11) << 1));
+	writeCommand((uint8_t)((color >> 5) & 0x3F));
+	writeCommand((uint8_t)((color << 1) & 0x3F));
+	delayMicroseconds(SSD1331_DELAYS_HWLINE);
+	writeCommand((uint8_t)((color >> 11) << 1));
+	writeCommand((uint8_t)((color >> 5) & 0x3F));
+	writeCommand((uint8_t)((color << 1) & 0x3F));
+	endWrite();
+	delayMicroseconds(SSD1331_DELAYS_HWFILL);
+	
+}
