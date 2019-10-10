@@ -23,13 +23,12 @@ The tImage (16-bit RGB color) and bwImage (8-bit monochrome) templates in the lc
 The following hardware graphics functions are implemented, all of which are significantly faster that the equivalent software routines:
 * drawImage (from flash (PROGMEM) memory map. Utilises hardware pointer auto-increment to improve speed)
 * drawMaskedImage (draw 'masked' image with specified mask (matte) and colour)
-* clearWindow
-* copyWindow (copies a portion of the display to another area)
 
 The following hardware configuration functions are implemented:
 * setOrientation (8 permutations available - normal, 90, 180 and 270 rotation, each of which can also be mirrored)
 * setGrayScale (by passing decimal gamma value)
 * resetGrayScale (linear gray scale i.e. gamma = 1.0)
+* clearWindow
 * dimWindow
 * display on/off/rotate/invert ('negative')
 * display scrolling (horizontal and/or vertical, all or selected rows)
@@ -45,15 +44,15 @@ SC and CD) relate specifically to the SD card reader. Boards which have no SD ca
 
 Pin on OLED board       | Pin on Arduino | Purpose
 ----------------------- | -------------- | ------------------------------------------------------ 
-GND (G)                 | GND            | Ground
-VCC (\+)                | +5V            | Power **NB** some boards may run off 3.3V - check datasheet
-SCL (CK)                | Pin 13         | SPI SCLK Clock (hardware) *1*
-SDA (SI)                | Pin 11         | SPI MOSI Master Out, Slave In (hardware) *1*
+GND or G                | GND            | Ground
+VCC or \+               | +5V            | Power **NB** some boards may run off 3.3V - check datasheet
+SCL or CK               | Pin 13         | SPI SCLK Clock (hardware) *1*
+SDA or SI               | Pin 11         | SPI MOSI Master Out, Slave In (hardware) *1*
 SO                      | Pin 12         | SPI MISO Master In, Slave Out for SD Card reader, if present (hardware) *1*
-RES (R)                 | Digital pin 10 | SPI Reset 
-DC (sometimes RS)       | Digital pin 9  | SPI SDIO Serial Data
-CS (OC) on first board  | Digital pin 8  | SPI Chip Select pin for first OLED
-SC                      | Digital pin 4  | SPI Chip Select pin for SD Card reader, if present
+RES or R                | Digital pin 9  | SPI Reset 
+DC or RS                | Digital pin 8  | SPI SDIO Serial Data
+CS or OC                | Digital pin 10 | SPI Chip Select pin for first OLED
+SC                      | Digital pin 7  | SPI Chip Select pin for SD Card reader, if present
 CD                      | N/C            | Used to detect if SD card is inserted, if present
 
 * *1* Check microcontroller datasheet for details of which hardware SPI pins to use.
@@ -62,8 +61,8 @@ CD                      | N/C            | Used to detect if SD card is inserted
 
 Pin on 2nd OLED board   | Pin on Arduino | Purpose
 ----------------------- | -------------- | ------------------------------------------------------ 
-RES (R) on 2nd board    | Digital pin 10 | SPI Reset for second OLED; uses same physical pin as first board but MUST BE assigned to a fictional pin (e.g. RST2 = 99) in the sketch
-CS (OC) on 2nd board    | Digital pin 7  | SPI Chip Select for second OLED
+RES (R) on 2nd board    | Digital pin 9  | SPI Reset for second OLED; uses same physical pin as first board but MUST BE assigned to a fictional pin (e.g. RST2 = 99) in the sketch
+CS (OC) on 2nd board    | Digital pin 6  | SPI Chip Select for second OLED
 
 <!-- END WIRING TABLE -->
 
@@ -73,16 +72,15 @@ CS (OC) on 2nd board    | Digital pin 7  | SPI Chip Select for second OLED
 
 **NB: Use of drawImage function is subject to flash (program) memory limits on all devices**
 
-MCU                | Tested Works | Doesn't Work | Not Tested  | Notes
------------------- | :----------: | :----------: | :---------: | -----
-Arduino UNO        |      X       |              |             | 
-Arduino Micro      |      X       |              |             | 
-Arduino Zero M0    |      X       |              |             | 
-Arduino DUE        |      X       |              |             | 
-Adafruit Metro M4  |              |       	     |     X       |
-Teensy 3.2 @ 72MHz |      X       |              |             | 
+MCU                 | Tested Works | Doesn't Work | Not Tested  | Notes
+------------------- | :----------: | :----------: | :---------: | --------------------
+Arduino UNO         |      X       |              |             | Very limited memory
+Arduino Micro       |      X       |              |             | Very limited memory
+Arduino Zero M0     |      X       |              |             | 
+Arduino DUE         |      X       |              |             | 
+Adafruit Metro M4   |              |       	      |     X       |
+Teensy 3.2 @ 72MHz  |      X       |              |             | 
 Teensy 3.6 @ 180MHz |      X       |              |             |
-Teensy 4.0 @ 600MHz |             |              |     X        |
-
+Teensy 4.0 @ 600MHz |              |              |     X       |
 
 <!-- END COMPATIBILITY TABLE -->
