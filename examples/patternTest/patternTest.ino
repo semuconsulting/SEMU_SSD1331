@@ -60,49 +60,49 @@ void setup(void) {
   randomSeed(analogRead(0));
 
   display.begin(0x72);
-  display.clearWindow();
+  display.fillScreen(BLACK);
 
 }
 
 void loop() {
 
   display.setOrientation(SSD1331_ROTATE_NORMAL);
-  display.clearWindow();
+  display.fillScreen(BLACK);
   
   patterns();
   delay(PAUSE);
 
-  display.clearWindow();
+  display.fillScreen(BLACK);
   period = millis() + 5000;
   while (millis() < period) {
     randomlines();
   }
   delay(PAUSE);
 
-  display.clearWindow();
+  display.fillScreen(BLACK);
   dial();
   delay(PAUSE);
 
-  display.clearWindow();
+  display.fillScreen(BLACK);
   period = millis() + 5000;
   while (millis() < period) {
     oscilloscope();
   }
   delay(PAUSE);
 
-  display.clearWindow();
+  display.fillScreen(BLACK);
   period = millis() + 5000;
   while (millis() < period) {
     rectangles(32);
   }
 
-  display.clearWindow();
+  display.fillScreen(BLACK);
   period = millis() + 5000;
   while (millis() < period) {
     rectangles(16);
   }
 
-  display.clearWindow();
+  display.fillScreen(BLACK);
   period = millis() + 5000;
   while (millis() < period) {
     rectangles(8);
@@ -145,10 +145,10 @@ void patterns() {
 
   uint8_t x, y;
 
-  uint8_t xT = display.getTFTWidth();
-  uint8_t yT = display.getTFTHeight();
+  uint8_t xT = display.width();
+  uint8_t yT = display.height();
 
-  display.clearWindow();
+  display.fillScreen(BLACK);
 
   for (x = 0; x < xT - 1; x += 4) {
     display.drawLine (x, 0, x, yT, RED);
@@ -158,7 +158,7 @@ void patterns() {
   }
 
   delay(PAUSE);
-  display.clearWindow();
+  display.fillScreen(BLACK);
 
   for (x = 0; x < xT - 1; x += 4) {
     display.drawLine (x, 0, xT - x, yT, RED);
@@ -168,7 +168,7 @@ void patterns() {
   }
 
   delay(PAUSE);
-  display.clearWindow();
+  display.fillScreen(BLACK);
 
   for (x = 0; x < yT - 1; x += 4) {
     display.drawLine (0, x, x * 1.5, yT - 1, random(0xffff));
@@ -230,8 +230,8 @@ void oscilloscope() {
   uint16_t x, y;
   float s1, s2;
 
-  uint8_t xT = display.getTFTWidth();
-  uint8_t yT = display.getTFTHeight();
+  uint8_t xT = display.width();
+  uint8_t yT = display.height();
 
   for (y = 0; y < 200; y += 5) {
     for (x = 0; x < xT - 1; x++) {
