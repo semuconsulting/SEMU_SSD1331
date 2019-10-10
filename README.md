@@ -77,9 +77,12 @@ MCU                | Tested Works | Doesn't Work | Not Tested  | Notes
 ------------------ | :----------: | :----------: | :---------: | -----
 Arduino UNO        |      X       |              |             | 
 Arduino Micro      |      X       |              |             | 
+Arduino Zero M0    |      X       |              |             | 
 Arduino DUE        |      X       |              |             | 
+Adafruit Metro M4  |              |       	     |     X       |
 Teensy 3.2 @ 72MHz |      X       |              |             | 
-Teensy 3.6 @ 72MHz |      X       |              |             |
-Adafruit Metro M4  |              |     	     |     X       |
+Teensy 3.6 @ 180MHz |      X       |              |             |
+Teensy 4.0 @ 600MHz |             |              |     X        |
+
 
 <!-- END COMPATIBILITY TABLE -->
