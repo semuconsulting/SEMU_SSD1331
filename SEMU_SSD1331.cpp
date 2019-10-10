@@ -61,7 +61,7 @@ void SEMU_SSD1331::setAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
   sendCommand(0x75); // Column addr set
   sendCommand(y1);
   sendCommand(y2);
-
+  
   startWrite();
 }
 
@@ -294,8 +294,8 @@ void SEMU_SSD1331::setGrayScale(float gamma) {
 	
 */
 /**************************************************************************/
-void SEMU_SSD1331::clearWindow(uint16_t x0, uint16_t y0, uint16_t x1,
-	uint16_t y1) {
+void SEMU_SSD1331::clearWindow(uint8_t x0, uint8_t y0, uint8_t x1,
+	uint8_t y1) {
 
 	startWrite();
 	writeCommand(SSD1331_CMD_CLEAR);
@@ -304,7 +304,7 @@ void SEMU_SSD1331::clearWindow(uint16_t x0, uint16_t y0, uint16_t x1,
 	writeCommand(x1);
 	writeCommand(y1);
 	endWrite();
-	delayMicroseconds(SSD1331_DELAYS_HWFILL);
+	//delayMicroseconds(SSD1331_DELAYS_HWFILL);
 
 }
 
@@ -658,6 +658,7 @@ void SEMU_SSD1331::drawMaskedSegment(uint16_t x0, uint16_t y0,
 	  @param   color color of line
 */
 /**************************************************************************/
+
 void SEMU_SSD1331::drawLine(int16_t x0, int16_t y0, int16_t x1,
 	int16_t y1, uint16_t color) {
 
@@ -667,7 +668,7 @@ void SEMU_SSD1331::drawLine(int16_t x0, int16_t y0, int16_t x1,
 	writeCommand(y0);
 	writeCommand(x1);
 	writeCommand(y1);
-	// delayMicroseconds (SSD1331_DELAYS_HWLINE);
+	//delayMicroseconds (SSD1331_DELAYS_HWLINE);
 	writeCommand((uint8_t)((color >> 11) << 1));
 	writeCommand((uint8_t)((color >> 5) & 0x3F));
 	writeCommand((uint8_t)((color << 1) & 0x3F));
@@ -687,22 +688,26 @@ void SEMU_SSD1331::drawLine(int16_t x0, int16_t y0, int16_t x1,
 	  @param   fill_color fill color of rectangle	    
 */
 /**************************************************************************/
+
 void SEMU_SSD1331::drawRect(int16_t x0, int16_t y0, int16_t x1, int16_t y1, 
-  uint16_t border_color, uint16_t fill_color, boolean filled) {
+  uint16_t border_color, uint16_t fill_color, bool filled) {
 
 	startWrite();
 	writeCommand(SSD1331_CMD_FILL);
 	writeCommand(filled);
+	endWrite();
+	//delayMicroseconds(SSD1331_DELAYS_HWFILL);
+	startWrite();
 	writeCommand(SSD1331_CMD_DRAWRECT);
 	writeCommand(x0);
 	writeCommand(y0);
 	writeCommand(x1);
 	writeCommand(y1);
-	delayMicroseconds(SSD1331_DELAYS_HWLINE);
+	//delayMicroseconds(SSD1331_DELAYS_HWFILL);
 	writeCommand((uint8_t)((border_color >> 11) << 1));
 	writeCommand((uint8_t)((border_color >> 5) & 0x3F));
 	writeCommand((uint8_t)((border_color << 1) & 0x3F));
-	delayMicroseconds(SSD1331_DELAYS_HWLINE);
+	//delayMicroseconds(SSD1331_DELAYS_HWFILL);
 	writeCommand((uint8_t)((fill_color >> 11) << 1));
 	writeCommand((uint8_t)((fill_color >> 5) & 0x3F));
 	writeCommand((uint8_t)((fill_color << 1) & 0x3F));
@@ -722,17 +727,17 @@ void SEMU_SSD1331::drawRect(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
 	  @param   color color of rectangle border
 */
 /**************************************************************************/
+
 void SEMU_SSD1331::drawRect(int16_t x, int16_t y, int16_t w, int16_t h, 
   uint16_t color) {
 
-  drawRect(x, y, x + w - 1, y + h - 1, color, color, false);
+  drawRect(x, y, x + w, y + h, color, color, false);
 	
 }
 
 /**************************************************************************/
 /*!
     @brief  Draws a filled rectangle using hardware DRAWRECT and FILL commands
-          ADAFRUIT_GFX OVERRIDE
     @param   x0    x (horizontal) starting rectangle coordinate
     @param   y0    y (vertical) starting rectangle coordinate
     @param   w     width of rectangle
@@ -740,74 +745,57 @@ void SEMU_SSD1331::drawRect(int16_t x, int16_t y, int16_t w, int16_t h,
 	  @param   color color of rectangle
 */
 /**************************************************************************/
+
 void SEMU_SSD1331::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, 
   uint16_t color) {
 
-  drawRect(x, y, x + w - 1, y + h - 1, color, color, true);
+  drawRect(x, y, x + w, y + h, color, color, true);
 	
 }
 
 /**************************************************************************/
 /*!
     @brief  Draws a vertical line using hardware DRAWLINE command
-          ADAFRUIT_GFX OVERRIDE
     @param   x0    x (horizontal) starting line coordinate
     @param   y0    y (vertical) starting line coordinate
 	  @param   h     height of line
 	  @param   color color of line
 */
 /**************************************************************************/
+
 void SEMU_SSD1331::drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color) {
 
-	drawLine(x, y, x, y + h - 1, color);
+	drawLine(x, y, x, y+h-1, color);
 	
 }
-  
+
 /**************************************************************************/
 /*!
     @brief  Draws a horizontal line using hardware DRAWLINE command
-          ADAFRUIT_GFX OVERRIDE
     @param   x0    x (horizontal) starting line coordinate
     @param   y0    y (vertical) starting line coordinate
     @param   w     width of line
 	  @param   color color of line
-*/
-/**************************************************************************/  
+
+/**************************************************************************/
+
 void SEMU_SSD1331::drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color) {
 
-	drawLine(x, y, x + w - 1, y, color);
+	drawLine(x, y, x+w-1, y, color);
 
 }
 
 /**************************************************************************/
 /*!
     @brief  Fills screen with specified color using hardware FILL command
-          ADAFRUIT_GFX OVERRIDE
 	  @param   color fill color
 */
 /**************************************************************************/
+
 void SEMU_SSD1331::fillScreen(uint16_t color) {
 
   drawRect(0, 0, TFTWIDTH - 1, TFTHEIGHT -1, color, color, true);
 	
-}
-
-/**************************************************************************/
-/*!
-    @brief  Returns display width
-*/
-/**************************************************************************/
-uint16_t SEMU_SSD1331::getTFTWidth(void) {
-	return _width;
-}
-
-/**************************************************************************/
-/*!
-    @brief  Returns display height
-*/
-/**************************************************************************/
-uint16_t SEMU_SSD1331::getTFTHeight(void){
-	return _height;
 }
 
 /**************************************************************************/

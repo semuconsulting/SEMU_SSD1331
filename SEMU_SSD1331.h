@@ -33,8 +33,8 @@
 #endif
 
 // Timing Delays
-#define SSD1331_DELAYS_HWFILL		    (3)
-#define SSD1331_DELAYS_HWLINE       (1)
+#define SSD1331_DELAYS_HWFILL		    (1000)
+#define SSD1331_DELAYS_HWLINE       (400)
 
 // SSD1331 Commands
 #define SSD1331_CMD_DRAWLINE 		    0x21
@@ -167,7 +167,7 @@ class SEMU_SSD1331 : public Adafruit_SPITFT {
   void setDisplayMode(uint8_t mode);
   void setOrientation(uint8_t orientation);
   void setGrayScale(float gamma);
-  void clearWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
+  void clearWindow(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1);
 	void clearWindow();
 	void dimWindow(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1);
 	void setScroll(uint8_t x_speed, uint8_t y_speed, uint8_t y0, uint8_t rows,
@@ -181,25 +181,30 @@ class SEMU_SSD1331 : public Adafruit_SPITFT {
   void drawImage(const bwImage *img);
   void drawMaskedImage(uint16_t x0, uint16_t y0, const tImage *img, const tImage *mask);
   void drawMaskedSegment(uint16_t x0, uint16_t y0, const tImage *img, const tImage *mask);
-  void drawHWLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color);
-  void drawHWRect(uint16_t x0, uint16_t y0, uint16_t x1,
-	  uint16_t y1, uint16_t line_color, uint16_t fill_color, bool filled);
 	
 	/*****************************************************************************
-	Adafruit_GFX line and rectangle drawing overrides
+	Adafruit_GFX line and rectangle drawing potential overrides
 	*****************************************************************************/
+/*
+  void drawLine(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint16_t color);
+  void drawRect(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, 
+    uint16_t border_color, uint16_t fill_color, bool filled);
+  void drawRect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint16_t color);
+  void fillRect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint16_t color);
+	void drawFastVLine(uint8_t x, uint8_t y, uint8_t h, uint16_t color);
+  void drawFastHLine(uint8_t x, uint8_t y, uint8_t w, uint16_t color);
+  void fillScreen(uint16_t color);
+*/  
+  void drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color);
+  void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color);
+  void fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
+  void fillScreen(uint16_t color);
   void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color);
   void drawRect(int16_t x0, int16_t y0, int16_t x1, int16_t y1, 
-    uint16_t border_color, uint16_t fill_color, boolean filled);
+    uint16_t border_color, uint16_t fill_color, bool filled);
   void drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
-  void fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
-	void drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color);
-  void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color);
-  void fillScreen(uint16_t color);
 
 	// getter functions
-	uint16_t getTFTWidth(void);
-	uint16_t getTFTHeight(void);
 	uint8_t getOrientation(void);
 	
   static const int16_t TFTWIDTH = 96;    ///< The width of the display
