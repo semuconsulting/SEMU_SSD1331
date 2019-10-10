@@ -304,7 +304,7 @@ void SEMU_SSD1331::clearWindow(uint8_t x0, uint8_t y0, uint8_t x1,
 	writeCommand(x1);
 	writeCommand(y1);
 	endWrite();
-	//delayMicroseconds(SSD1331_DELAYS_HWFILL);
+	delayMicroseconds(SSD1331_DELAYS_HWFILL);
 
 }
 
@@ -685,7 +685,8 @@ void SEMU_SSD1331::drawLine(int16_t x0, int16_t y0, int16_t x1,
     @param   x1    x (horizontal) ending rectangle coordinate
     @param   y1    y (vertical) ending rectangle coordinate
 	  @param   border_color border color of rectangle
-	  @param   fill_color fill color of rectangle	    
+	  @param   fill_color fill color of rectangle	  
+	  @param   filled whether filled or not  
 */
 /**************************************************************************/
 

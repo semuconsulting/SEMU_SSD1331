@@ -185,16 +185,6 @@ class SEMU_SSD1331 : public Adafruit_SPITFT {
 	/*****************************************************************************
 	Adafruit_GFX line and rectangle drawing potential overrides
 	*****************************************************************************/
-/*
-  void drawLine(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint16_t color);
-  void drawRect(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, 
-    uint16_t border_color, uint16_t fill_color, bool filled);
-  void drawRect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint16_t color);
-  void fillRect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint16_t color);
-	void drawFastVLine(uint8_t x, uint8_t y, uint8_t h, uint16_t color);
-  void drawFastHLine(uint8_t x, uint8_t y, uint8_t w, uint16_t color);
-  void fillScreen(uint16_t color);
-*/  
   void drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color);
   void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color);
   void fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
