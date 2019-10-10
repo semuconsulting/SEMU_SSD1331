@@ -197,6 +197,11 @@ class SEMU_SSD1331 : public Adafruit_SPITFT {
   void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color);
   void fillScreen(uint16_t color);
 
+	// getter functions
+	uint16_t getTFTWidth(void);
+	uint16_t getTFTHeight(void);
+	uint8_t getOrientation(void);
+	
   static const int16_t TFTWIDTH = 96;    ///< The width of the display
   static const int16_t TFTHEIGHT = 64;   ///< The height of the display
  

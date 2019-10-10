@@ -791,3 +791,30 @@ void SEMU_SSD1331::fillScreen(uint16_t color) {
   drawRect(0, 0, TFTWIDTH - 1, TFTHEIGHT -1, color, color, true);
 	
 }
+
+/**************************************************************************/
+/*!
+    @brief  Returns display width
+*/
+/**************************************************************************/
+uint16_t SEMU_SSD1331::getTFTWidth(void) {
+	return _width;
+}
+
+/**************************************************************************/
+/*!
+    @brief  Returns display height
+*/
+/**************************************************************************/
+uint16_t SEMU_SSD1331::getTFTHeight(void){
+	return _height;
+}
+
+/**************************************************************************/
+/*!
+    @brief  Returns display hardware orientation
+*/
+/**************************************************************************/
+uint8_t SEMU_SSD1331::getOrientation(void){
+	return _orientation;
+}
