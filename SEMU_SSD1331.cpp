@@ -179,63 +179,6 @@ void SEMU_SSD1331::enableDisplay(boolean enable) {
 
 /**************************************************************************/
 /*!
-    @brief  Paints a full colour image from flash memory (PROGMEM)
-    @param    x0    x (horizontal) starting display coordinate
-    @param    y0    y (vertical) starting display coordinate
-    @param    *img  pointer to PROGMEM image bitmap
-*/
-/**************************************************************************/
-void SEMU_SSD1331::drawImage(uint16_t x0, uint16_t y0, const tImage *img) {
-
-	uint16_t x, y, px, color;
-	bool skipping = false;
-	const uint16_t * imageData = PROGMEM_read(&img->data);// copy pixels from flash (program) memory into SRAM (data) memory
-	uint16_t iWidth = pgm_read_word(&img->width);      // copy image width
-	uint16_t iHeight = pgm_read_word(&img->height);    // copy image height
-	//uint16_t iSize = pgm_read_word(&img->pixels);      // copy number of pixels in image
-	//uint8_t  iDepth = pgm_read_byte(&img->depth);      // copy number of bits per pixel (i.e. colour depth)
-	bool     isTrans = pgm_read_byte(&img->istrans);   // whether image is transparent or not
-	uint16_t iTcolor = pgm_read_word(&img->tcolor);    // color to be rendered as transparent, if above flag is set
-
-	//goTo(x0, y0);                                      // initialise cursor to top left
-	px = 0;
-	
-	for (y = y0; y < y0 + iHeight; y++) {
-		setCursor(x0, y);
-		for (x = x0; x < x0 + iWidth; x++) {
-			color = pgm_read_word(&imageData[px]);
-			// if this pixel transparent colour, skip it
-			if ((isTrans) && (color == iTcolor)) {
-				skipping = true;
-			}
-			// otherwise, draw the pixel
-			else {
-				if (skipping) {
-					skipping = false;
-					setCursor(x, y);
-				}
-				pushColor(color);
-			}
-			px++;
-		}
-	}
-
-}
-
-/**************************************************************************/
-/*!
-    @brief  Paints a full colour image from flash memory (PROGMEM) at default coordinates
-    @param    *img  pointer to PROGMEM image bitmap
-*/
-/**************************************************************************/
-void SEMU_SSD1331::drawImage(const tImage *img) {
-
-	drawImage(0,0,img);
-
-}
-
-/**************************************************************************/
-/*!
     @brief  Change hardware orientation of display
     @param	orientation Set to required orientation mode
 */
@@ -379,6 +322,30 @@ void SEMU_SSD1331::clearWindow() {
 
 /**************************************************************************/
 /*!
+    @brief  Implements hardware DIM command
+    @param    x0     top coordinate
+	  @param    y0     leftmost coordinate
+	  @param    x1     bottom coordinate
+	  @param    y1     rightmost coordinate
+	
+*/
+/**************************************************************************/
+void SEMU_SSD1331::dimWindow(uint8_t x0, uint8_t y0, uint8_t x1,
+	uint8_t y1) {
+
+	startWrite();
+	writeCommand(SSD1331_CMD_DIM);
+	writeCommand(x0);
+	writeCommand(y0);
+	writeCommand(x1);
+	writeCommand(y1);
+	endWrite();
+	delayMicroseconds(SSD1331_DELAYS_HWFILL);
+
+}
+
+/**************************************************************************/
+/*!
     @brief  Implements hardware SETSCROLL command
     @param    x_speed     horizontal scroll speed
 	  @param    y_speed     vertical scroll speed
@@ -464,4 +431,218 @@ void SEMU_SSD1331::stopScroll() {
 		_scrollmode = SSD1331_SCROLL_OFF;
 	}
 
+}
+
+/**************************************************************************/
+/*!
+    @brief  Paints a full colour image from flash memory (PROGMEM)
+    @param    x0    x (horizontal) starting display coordinate
+    @param    y0    y (vertical) starting display coordinate
+    @param    *img  pointer to PROGMEM image bitmap
+*/
+/**************************************************************************/
+void SEMU_SSD1331::drawImage(uint16_t x0, uint16_t y0, const tImage *img) {
+
+	uint16_t x, y, px, color;
+	bool skipping = false;
+	const uint16_t * imageData = PROGMEM_read(&img->data);// copy pixels from flash (program) memory into SRAM (data) memory
+	uint16_t iWidth = pgm_read_word(&img->width);      // copy image width
+	uint16_t iHeight = pgm_read_word(&img->height);    // copy image height
+	//uint16_t iSize = pgm_read_word(&img->pixels);      // copy number of pixels in image
+	//uint8_t  iDepth = pgm_read_byte(&img->depth);      // copy number of bits per pixel (i.e. colour depth)
+	bool     isTrans = pgm_read_byte(&img->istrans);   // whether image is transparent or not
+	uint16_t iTcolor = pgm_read_word(&img->tcolor);    // color to be rendered as transparent, if above flag is set
+
+	//goTo(x0, y0);                                      // initialise cursor to top left
+	px = 0;
+	
+	for (y = y0; y < y0 + iHeight; y++) {
+		setCursor(x0, y);
+		for (x = x0; x < x0 + iWidth; x++) {
+			color = pgm_read_word(&imageData[px]);
+			// if this pixel transparent colour, skip it
+			if ((isTrans) && (color == iTcolor)) {
+				skipping = true;
+			}
+			// otherwise, draw the pixel
+			else {
+				if (skipping) {
+					skipping = false;
+					setCursor(x, y);
+				}
+				pushColor(color);
+			}
+			px++;
+		}
+	}
+
+}
+
+/**************************************************************************/
+/*!
+    @brief  Paints a monochrome image from flash memory (PROGMEM)
+    @param    x0    x (horizontal) starting display coordinate
+    @param    y0    y (vertical) starting display coordinate
+    @param    *img  pointer to PROGMEM image bitmap
+*/
+/**************************************************************************/
+void SEMU_SSD1331::drawImage(uint16_t x0, uint16_t y0, const bwImage *img) {
+
+	uint16_t x, y; 
+	uint8_t px, color;
+	bool skipping = false;
+	const uint8_t * imageData = PROGMEM_read(&img->data);// copy pixels from flash (program) memory into SRAM (data) memory
+	uint16_t iWidth = pgm_read_word(&img->width);      // copy image width
+	uint16_t iHeight = pgm_read_word(&img->height);    // copy image height
+	//uint16_t iSize = pgm_read_word(&img->pixels);      // copy number of pixels in image
+	//uint8_t  iDepth = pgm_read_byte(&img->depth);      // copy number of bits per pixel (i.e. colour depth)
+	bool     isTrans = pgm_read_byte(&img->istrans);   // whether image is transparent or not
+	uint8_t iTcolor = pgm_read_word(&img->tcolor);    // color to be rendered as transparent, if above flag is set
+
+	//goTo(x0, y0);                                      // initialise cursor to top left
+	px = 0;
+	
+	for (y = y0; y < y0 + iHeight; y++) {
+		setCursor(x0, y);
+		for (x = x0; x < x0 + iWidth; x++) {
+			color = pgm_read_word(&imageData[px]);
+			// if this pixel transparent colour, skip it
+			if ((isTrans) && (color == iTcolor)) {
+				skipping = true;
+			}
+			// otherwise, draw the pixel
+			else {
+				if (skipping) {
+					skipping = false;
+					setCursor(x, y);
+				}
+				pushColor(color);
+			}
+			px++;
+		}
+	}
+
+}
+
+/**************************************************************************/
+/*!
+    @brief  Paints a full colour image from flash memory (PROGMEM) at default coordinates
+    @param    *img  pointer to PROGMEM image bitmap
+*/
+/**************************************************************************/
+void SEMU_SSD1331::drawImage(const tImage *img) {
+
+	drawImage(0,0,img);
+
+}
+
+/**************************************************************************/
+/*!
+    @brief  Paints a monochrome image from flash memory (PROGMEM) at default coordinates
+    @param    *img  pointer to PROGMEM image bitmap
+*/
+/**************************************************************************/
+void SEMU_SSD1331::drawImage(const bwImage *img) {
+
+	drawImage(0,0,img);
+
+}
+
+/**************************************************************************/
+/*!
+    @brief  Paints a masked full colour image from flash memory (PROGMEM) with a 
+    specified 16-bit colour mask image
+    @param    x0    x (horizontal) starting display coordinate
+    @param    y0    y (vertical) starting display coordinate
+    @param    *img  pointer to PROGMEM image bitmap
+	  @param    *mask pointer to PROGMEM mask bitmap
+*/
+/**************************************************************************/
+void SEMU_SSD1331::drawMaskedImage(uint16_t x0, uint16_t y0,
+	const tImage *img, const tImage *mask) {
+
+	uint16_t x, y;
+	uint16_t iColour, mColour;
+	uint16_t px;
+	const uint16_t * imageData = PROGMEM_read(&img->data);  // copy image pixels from flash (program) memory into SRAM (data) memory
+	const uint16_t * maskData = PROGMEM_read(&mask->data);  // copy mask pixels from flash (program) memory into SRAM (data) memory
+	uint16_t iWidth = pgm_read_word(&img->width);           // copy image width
+	uint16_t iHeight = pgm_read_word(&img->height);         // copy image height
+	//uint16_t iSize = pgm_read_word(&img->pixels);           // copy number of pixels in image
+	//uint8_t iDepth = pgm_read_byte(&img->depth);            // copy number of bits per pixel (i.e. colour depth)
+	uint16_t iTcolor = pgm_read_word(&mask->tcolor);        // color to be rendered as transparent, if above flag is set
+
+	//goTo(x0, y0);                          		// initialise cursor to top left
+	px = 0;
+
+	for (y = y0; y < y0 + iHeight; y++) {
+		setCursor(x0, y);
+		for (x = x0; x < x0 + iWidth; x++) {
+			iColour = pgm_read_word(&imageData[px]);   // read in the image data
+			mColour = pgm_read_word(&maskData[px]);		// read in the mask data
+			if (mColour == iTcolor) {   // if the mask pixel is transparent, draw the image pixel	  
+				pushColor(iColour);
+			}
+			else {						// otherwise, draw the mask pixel
+				pushColor(mColour);
+			}
+			px++;
+		}
+
+	}
+}
+
+/**************************************************************************/
+/*!
+    @brief  Displays a masked, display-sized segment of a larger 16-bit colour image 
+    bitmap beginning at the specified x0,y0 image coordinates.
+	  The image bitmap must be at least as large as the display.
+	  The mask bitmap must be the same size as the display.
+    @param    x0    x (horizontal) starting display coordinate
+    @param    y0    y (vertical) starting display coordinate
+    @param    *img  pointer to PROGMEM image bitmap
+	  @param    *mask pointer to PROGMEM mask bitmap
+*/
+/**************************************************************************/
+void SEMU_SSD1331::drawMaskedSegment(uint16_t x0, uint16_t y0,
+	const tImage *img, const tImage *mask) {
+
+	uint16_t x, y;
+	uint16_t iColour, mColour;
+	uint16_t pxi, pxm;
+	const uint16_t * imageData = PROGMEM_read(&img->data);  // copy image pixels from flash (program) memory into SRAM (data) memory
+	const uint16_t * maskData = PROGMEM_read(&mask->data);  // copy mask pixels from flash (program) memory into SRAM (data) memory
+	uint16_t iWidth = pgm_read_word(&img->width);           // copy image width
+	uint16_t mWidth = pgm_read_word(&mask->width);          // copy mask width
+	uint16_t iHeight = pgm_read_word(&img->height);         // copy image height
+	//uint16_t iSize = pgm_read_word(&img->pixels);         // copy number of pixels in image
+	//uint8_t iDepth = pgm_read_byte(&img->depth);          // copy number of bits per pixel (i.e. colour depth)
+	bool     isTrans = pgm_read_byte(&mask->istrans);        // whether image is transparent or not
+	uint16_t iTcolor = pgm_read_word(&mask->tcolor);         // color to be rendered as transparent, if above flag is set
+
+	startWrite();
+	for (y = 0; y < TFTHEIGHT; y++) {
+		
+		pxi = (iWidth * (y + y0 - 1)) + x0 - 1; 			// set image pixel to leftmost pixel of segment
+		pxm = mWidth * y; 									// set mask pixel to leftmost pixel of segment
+		
+		setCursor(0, y);
+		
+		for (x = 0; x < TFTWIDTH; x++) {
+			iColour = pgm_read_word(&imageData[pxi]);   	// read in the image data
+			mColour = pgm_read_word(&maskData[pxm]);		// read in the mask data
+			if (mColour == iTcolor) {   					// if the mask pixel is transparent, draw the mask pixel	  
+				pushColor(mColour);
+			}
+			else {											// otherwise, draw the image pixel
+				pushColor(iColour);
+			}
+			pxi++;
+			pxm++;
+			
+		}
+
+	}
+	endWrite();
+	
 }

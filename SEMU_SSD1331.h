@@ -164,17 +164,23 @@ class SEMU_SSD1331 : public Adafruit_SPITFT {
   void setAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
 
   void enableDisplay(boolean enable);
-  void drawImage(uint16_t x0, uint16_t y0, const tImage *img);
-  void drawImage(const tImage *img);
   void setDisplayMode(uint8_t mode);
   void setOrientation(uint8_t orientation);
   void setGrayScale(float gamma);
   void clearWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
 	void clearWindow();
+	void dimWindow(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1);
 	void setScroll(uint8_t x_speed, uint8_t y_speed, uint8_t y0, uint8_t rows,
 		uint8_t interval);
   void startScroll(void);
   void stopScroll(void);
+  
+  void drawImage(uint16_t x0, uint16_t y0, const tImage *img);
+  void drawImage(uint16_t x0, uint16_t y0, const bwImage *img);
+  void drawImage(const tImage *img);
+  void drawImage(const bwImage *img);
+  void drawMaskedImage(uint16_t x0, uint16_t y0, const tImage *img, const tImage *mask);
+  void drawMaskedSegment(uint16_t x0, uint16_t y0, const tImage *img, const tImage *mask);
 	
   static const int16_t TFTWIDTH = 96;    ///< The width of the display
   static const int16_t TFTHEIGHT = 64;   ///< The height of the display
