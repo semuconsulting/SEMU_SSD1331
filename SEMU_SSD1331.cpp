@@ -725,7 +725,7 @@ void SEMU_SSD1331::drawRect(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
 void SEMU_SSD1331::drawRect(int16_t x, int16_t y, int16_t w, int16_t h, 
   uint16_t color) {
 
-  drawRect(x, y, x + w, y + h, color, color, false);
+  drawRect(x, y, x + w - 1, y + h - 1, color, color, false);
 	
 }
 
@@ -743,7 +743,7 @@ void SEMU_SSD1331::drawRect(int16_t x, int16_t y, int16_t w, int16_t h,
 void SEMU_SSD1331::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, 
   uint16_t color) {
 
-  drawRect(x, y, x + w, y + h, color, color, true);
+  drawRect(x, y, x + w - 1, y + h - 1, color, color, true);
 	
 }
 
@@ -759,7 +759,7 @@ void SEMU_SSD1331::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
 /**************************************************************************/
 void SEMU_SSD1331::drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color) {
 
-	drawLine(x, y, x, y+h, color);
+	drawLine(x, y, x, y + h - 1, color);
 	
 }
   
@@ -775,7 +775,7 @@ void SEMU_SSD1331::drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color
 /**************************************************************************/  
 void SEMU_SSD1331::drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color) {
 
-	drawLine(x, y, x+w, y, color);
+	drawLine(x, y, x + w - 1, y, color);
 
 }
 
