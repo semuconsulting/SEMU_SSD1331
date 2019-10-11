@@ -1,42 +1,27 @@
 /***************************************************
-  SEMU_SSD1331 library orientationTest example
+  SEMU_SSD1331 library orientationDemo example
 
-  Test of various hardware orientation functions;
+  Demo of various hardware orientation functions;
   - normal
   - rotated through 90, 180 and 270 degrees
   - vertical and horizontal mirroring
 
-  WIRING CONNECTIONS:
-
-  NB: The pin markings tend to vary from board to board and SPI notation in general
-  is often somewhat confusing, so double check the manufacturer's/supplier's
-  pin specifications.
-
-  OLED Pin		Purpose						Arduino Pin
-  -------------------------------------------------------------------------
-  G/GND			Ground						GND
-  +/VCC			Supply voltage				+5V (+3.3V on some boards - check specs)
-  DC			Data						Digital pin 8
-  R/RST			Reset						Digital pin 9
-  OC or CS		SPI Chip select for OLED	Digital pin 10 (CS)
-  SI/SDA		SPI MOSI					Digital pin 11 (DOUT)
-  CK/SCL		SPI Clock (SCLK)			Digital pin 13 (SCK)
-
-  Following only applicable to boards with SD card readers - not used in this example.
-  SO			SPI MISO
-  SC			SPI Chip select for SD card reader (if fitted)
-  CD			SD card reader detect
+  The image header files used in this demo were created using
+  Vladimir Riuson's lcd-image-convertor utility:
+  https://github.com/riuson/lcd-image-converter
+  Suitable presets and templates for use with this utility can be found here:
+  https://github.com/semuconsulting/SEMU_SSD1331/tree/master/lcd_image_convert_template
 
  ****************************************************/
 //#define DEBUG 0
 
 #include <SEMU_SSD1331.h>
 
-#define sclk 13   // marked SCL on board
-#define mosi 11   // marked SDA on board
-#define cs   10    // marked CS on board
-#define rst  9   // marked RES on board
-#define dc   8    // marked DC on board
+#define sclk 13   // marked SCL or CK on OLED board
+#define mosi 11   // marked SDA or SI on OLED board
+#define cs   10   // marked CS or OC on OLED board
+#define rst  9    // marked RES or R on OLED board
+#define dc   8    // marked DC or sometimes (confusingly) RS on OLED board
 
 #include "landscape.h"
 #include "portrait.h"

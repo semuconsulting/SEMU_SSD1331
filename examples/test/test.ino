@@ -21,11 +21,11 @@
 //#include <Adafruit_SSD1331.h>
 
 // You can use any (4 or) 5 pins
-#define sclk 13
-#define mosi 11
-#define cs   10
-#define rst  9
-#define dc   8
+#define sclk 13   // marked SCL or CK on OLED board
+#define mosi 11   // marked SDA or SI on OLED board
+#define cs   10   // marked CS or OC on OLED board
+#define rst  9    // marked RES or R on OLED board
+#define dc   8    // marked DC or sometimes (confusingly) RS on OLED board
 
 
 // Color definitions

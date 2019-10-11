@@ -1,31 +1,10 @@
 
 /***************************************************
-  SEMU_SSD1331 library patternTest example which can be used to benchmark
+  SEMU_SSD1331 library patternDemo example which can be used to benchmark
   against standard Adafruit_SSD1331 library.
 
   Test of various point, line and rectangle drawing routines
   using hardware optimisation.
-
-  WIRING CONNECTIONS:
-
-  NB: The pin markings tend to vary from board to board and SPI notation in general
-  is often somewhat confusing, so double check the manufacturer's/supplier's
-  pin specifications.
-
-  OLED Pin		Purpose					Arduino Pin
-  -------------------------------------------------------------------------
-  G/GND			Ground						GND
-  +/VCC			Supply voltage	  +5V (+3.3V on some boards - check specs)
-  DC			  Data						  Digital pin 8
-  R/RST			Reset						  Digital pin 9
-  OC or CS	SPI Chip select for OLED	Digital pin 10 (CS)
-  SI/SDA		SPI MOSI					Digital pin 11 (DOUT)
-  CK/SCL		SPI Clock (SCLK)	Digital pin 13 (SCK)
-
-  Following only applicable to boards with SD card readers - not used in this example.
-  SO			  SPI MISO
-  SC			  SPI Chip select for SD card reader (if fitted)
-  CD			  SD card reader detect
 
  ****************************************************/
 #define DEBUG
@@ -33,11 +12,11 @@
 #include <SEMU_SSD1331.h>
 //#include <Adafruit_SSD1331.h>
 
-#define sclk 13     // SPI clock - marked 'CK' or 'SCL' on most SSD1331 OLED boards
-#define mosi 11     // SPI master out, slave in - marked 'SI' or 'SDA' on most SSD1331 OLED boards
-#define cs   10     // SPI chip select - marked 'OC' or 'CS' on most SSD1331 OLED boards. NB: The 'SC' pin is a separate chip select for the SD card, if fitted.
-#define rst  9      // SPI reset - marked 'R' or 'RST' on most SSD1331 OLED boards
-#define dc   8      // SPI data - marked 'DC' on most SSD1331 OLED boards
+#define sclk 13   // marked SCL or CK on OLED board
+#define mosi 11   // marked SDA or SI on OLED board
+#define cs   10   // marked CS or OC on OLED board
+#define rst  9    // marked RES or R on OLED board
+#define dc   8    // marked DC or sometimes (confusingly) RS on OLED board
 
 // Color definitions
 #define BLACK           0x0000
