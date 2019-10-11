@@ -21,8 +21,9 @@ The tImage (16-bit RGB color) and bwImage (8-bit monochrome) templates in the lc
 ## Current Status
 
 The following hardware graphics functions are implemented, all of which are significantly faster that the equivalent software routines:
-* drawImage (from flash (PROGMEM) memory map. Utilises hardware pointer auto-increment to improve speed)
-* drawMaskedImage (draw 'masked' image with specified mask (matte) and colour)
+* drawImage (from flash (PROGMEM) memory map. Utilises hardware pointer auto-increment to improve speed). Includes support for transparent images
+with specified transparency colour.
+* drawMaskedImage (draw 'masked' image with specified mask overlay (matte) and colour)
 
 The following hardware commands override Adafruit_GFX virtual methods:
 * drawLine (draw line between specified coordinates)
@@ -40,6 +41,14 @@ The following hardware configuration functions are implemented:
 * dimWindow
 * display on/off/rotate/invert ('negative')
 * display scrolling (horizontal and/or vertical, all or selected rows)
+
+## To Do
+
+* Implement improved boundary checking on input coordinates. For now, display will 
+normally just wrap-around based on current REMAP mode if coordinates exceed boundaries.
+* Implement hardware copy and move commands which support overlapping moves.
+* Some other specialised bitmap image handling utilities, possibly including support for
+3D re-projection.
 
 ## Wiring Connections
 
