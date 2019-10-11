@@ -28,7 +28,7 @@
   CD			  SD card reader detect
 
  ****************************************************/
-//#define DEBUG 0
+#define DEBUG
 
 #include <SEMU_SSD1331.h>
 //#include <Adafruit_SSD1331.h>
@@ -60,9 +60,11 @@ unsigned long totalDuration, testDuration;
 
 void setup(void) {
 
+#if defined(DEBUG)
   while (!Serial);    // wait for Serial port to open - may take a few seconds on Teensy and Micro boards
   Serial.begin(9600);
   Serial.println("Starting SSD1331 test routines..");
+#endif
   randomSeed(analogRead(0));
   display.begin(0x72);
 
@@ -71,42 +73,54 @@ void setup(void) {
 void loop() {
 
   totalDuration = millis();
+#if defined(DEBUG)
   Serial.print("Test iteration started at: ");
   Serial.println(totalDuration, DEC);
+#endif
 
   display.fillScreen(BLACK);
   testDuration = millis();
   patterns();
+#if defined(DEBUG)
   Serial.print("Line patterns took: ");
   Serial.println(millis() - testDuration, DEC);
+#endif
   delay(PAUSE);
 
   display.fillScreen(BLACK);
   testDuration = millis();
   zoomingSquares();
+#if defined(DEBUG)
   Serial.print("Zooming rectangles took: ");
   Serial.println(millis() - testDuration, DEC);
+#endif
   delay(PAUSE);
 
   display.fillScreen(BLACK);
   testDuration = millis();
   randomlines(500);
+#if defined(DEBUG)
   Serial.print("Random lines took: ");
   Serial.println(millis() - testDuration, DEC);
+#endif
   delay(PAUSE);
 
   display.fillScreen(BLACK);
   testDuration = millis();
   dial();
+#if defined(DEBUG)
   Serial.print("Rotating dial took: ");
   Serial.println(millis() - testDuration, DEC);
+#endif
   delay(PAUSE);
 
   display.fillScreen(BLACK);
   testDuration = millis();
   oscilloscope(100);
+#if defined(DEBUG)
   Serial.print("Oscilloscope took: ");
   Serial.println(millis() - testDuration, DEC);
+#endif
   delay(PAUSE);
 
   display.fillScreen(BLACK);
@@ -114,11 +128,13 @@ void loop() {
   rectangles(32, 100);
   rectangles(16, 100);
   rectangles(8, 100);
+#if defined(DEBUG)
   Serial.print("Random rectangles took: ");
   Serial.println(millis() - testDuration, DEC);
 
   Serial.print("Total duration of tests: ");
   Serial.println(millis() - totalDuration, DEC);
+#endif
 }
 
 /**************************************************************
@@ -257,7 +273,6 @@ void oscilloscope(uint16_t iterations) {
   float s1, s2;
 
   uint8_t xT = display.width();
-  uint8_t yT = display.height();
 
   for (y = 0; y < iterations; y += 5) {
     for (x = 0; x < xT - 1; x++) {

@@ -17,9 +17,8 @@
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
-#include <Adafruit_GFX.h>
 #include <SEMU_SSD1331.h>
-#include <SPI.h>
+//#include <Adafruit_SSD1331.h>
 
 // You can use any (4 or) 5 pins
 #define sclk 13
@@ -47,6 +46,7 @@
 // an output. This is much faster - also required if you want
 // to use the microSD card (see the image drawing example)
 SEMU_SSD1331 display = SEMU_SSD1331(&SPI, cs, dc, rst);
+//Adafruit_SSD1331 display = Adafruit_SSD1331(&SPI, cs, dc, rst);
 
 float p = 3.1415926;
 
