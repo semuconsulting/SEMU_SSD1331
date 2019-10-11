@@ -1,19 +1,19 @@
 
 /***************************************************
   SEMU_SSD1331 library patternTest example
-  
+
   Test of various point, line and rectangle drawing routines
   using hardware optimisation.
-  
+
   WIRING CONNECTIONS:
-  
-  NB: The pin markings tend to vary from board to board and SPI notation in general 
-  is often somewhat confusing, so double check the manufacturer's/supplier's 
+
+  NB: The pin markings tend to vary from board to board and SPI notation in general
+  is often somewhat confusing, so double check the manufacturer's/supplier's
   pin specifications.
 
   OLED Pin		Purpose						Arduino Pin
   -------------------------------------------------------------------------
-  G/GND			Ground						GND					
+  G/GND			Ground						GND
   +/VCC			Supply voltage				+5V (+3.3V on some boards - check specs)
   DC			Data						Digital pin 8
   R/RST			Reset						Digital pin 9
@@ -25,14 +25,13 @@
   SO			SPI MISO
   SC			SPI Chip select for SD card reader (if fitted)
   CD			SD card reader detect
-  
+
  ****************************************************/
 //#define DEBUG 0
 
 #include <Adafruit_GFX.h>
 #include <SEMU_SSD1331.h>
 #include <SPI.h>
-#include "colors.h"
 
 #define sclk 13     // SPI clock - marked 'CK' or 'SCL' on most SSD1331 OLED boards
 #define mosi 11     // SPI master out, slave in - marked 'SI' or 'SDA' on most SSD1331 OLED boards
@@ -40,10 +39,20 @@
 #define rst  9      // SPI reset - marked 'R' or 'RST' on most SSD1331 OLED boards
 #define dc   8      // SPI data - marked 'DC' on most SSD1331 OLED boards
 
+// Color definitions
+#define  BLACK           0x0000
+#define BLUE            0x001F
+#define RED             0xF800
+#define GREEN           0x07E0
+#define CYAN            0x07FF
+#define MAGENTA         0xF81F
+#define YELLOW          0xFFE0
+#define WHITE           0xFFFF
+
 #define PAUSE 1000
 
 // set up SPI display - uses hardware SPI pins on Teensy (MOSI 11 SCLK 13)
-SEMU_SSD1331 display = SEMU_SSD1331(cs, dc, rst);
+SEMU_SSD1331 display = SEMU_SSD1331(&SPI, cs, dc, rst);
 
 uint8_t i;
 float f;
@@ -68,12 +77,16 @@ void loop() {
 
   display.setOrientation(SSD1331_ROTATE_NORMAL);
   display.fillScreen(BLACK);
-  
+
   patterns();
   delay(PAUSE);
 
   display.fillScreen(BLACK);
-  period = millis() + 5000;
+  zoomingSquares();
+  delay(PAUSE);
+
+  display.fillScreen(BLACK);
+  period = millis() + 3000;
   while (millis() < period) {
     randomlines();
   }
@@ -84,20 +97,20 @@ void loop() {
   delay(PAUSE);
 
   display.fillScreen(BLACK);
-  period = millis() + 5000;
+  period = millis() + 3000;
   while (millis() < period) {
     oscilloscope();
   }
   delay(PAUSE);
 
   display.fillScreen(BLACK);
-  period = millis() + 5000;
+  period = millis() + 3000;
   while (millis() < period) {
     rectangles(32);
   }
 
   display.fillScreen(BLACK);
-  period = millis() + 5000;
+  period = millis() + 3000;
   while (millis() < period) {
     rectangles(16);
   }
@@ -143,50 +156,55 @@ void randomlines() {
 *************************************************************/
 void patterns() {
 
-  uint8_t x, y;
-
-  uint8_t xT = display.width();
-  uint8_t yT = display.height();
+  uint8_t x, y , n;
+  uint16_t col;
+  uint8_t xT = display.width() - 1;
+  uint8_t yT = display.height() - 1;
 
   display.fillScreen(BLACK);
 
-  for (x = 0; x < xT - 1; x += 4) {
-    display.drawLine (x, 0, x, yT, RED);
+  col = random(0xffff);
+  for (x = 0; x < xT; x += 4) {
+    display.drawLine (x, 0, xT - x, yT, col);
   }
-  for (x = 0; x < xT - 1; x += 4) {
-    display.drawLine (0, x, xT, x, GREEN);
+  col = random(0xffff);
+  for (x = 0; x < yT; x += 4) {
+    display.drawLine (0, x, xT, yT - x, col);
   }
 
   delay(PAUSE);
   display.fillScreen(BLACK);
 
-  for (x = 0; x < xT - 1; x += 4) {
-    display.drawLine (x, 0, xT - x, yT, RED);
-  }
-  for (x = 0; x < yT - 1; x += 4) {
-    display.drawLine (0, x, xT, yT - x, MAGENTA);
-  }
-
-  delay(PAUSE);
-  display.fillScreen(BLACK);
-
-  for (x = 0; x < yT - 1; x += 4) {
-    display.drawLine (0, x, x * 1.5, yT - 1, random(0xffff));
+  for (x = 0; x < yT; x += 4) {
+    display.drawLine (0, x, x * 1.5, yT, random(0xffff));
     //delay(10);
   }
-  for (x = 0; x < yT - 1; x += 4) {
-    display.drawLine (x * 1.5, yT - 1, xT - 1, yT - 1 - x, random(0xffff));
+  for (x = 0; x < yT; x += 4) {
+    display.drawLine (x * 1.5, yT, xT, yT - x, random(0xffff));
     //delay(10);
   }
-  for (x = 0; x < yT - 1; x += 4) {
-    display.drawLine (xT - 1, yT  - 1 - x, xT - x * 1.5, 0, random(0xffff));
+  for (x = 0; x < yT; x += 4) {
+    display.drawLine (xT, yT - x, xT - x * 1.5, 0, random(0xffff));
     //delay(10);
   }
-  for (x = 0; x < yT - 1; x += 4) {
+  for (x = 0; x < yT; x += 4) {
     display.drawLine (xT - x * 1.5, 0, 0, x, random(0xffff));
     //delay(10);
   }
   delay(PAUSE);
+  display.fillScreen(BLACK);
+
+  for (n = 40; n > 2; n--) {
+    col = random(0xffff);
+    for (x = 0; x < xT; x += n) {
+      display.drawFastVLine (x, 0, yT, col);
+    }
+    for (y = 0; y < yT; y += n) {
+      display.drawFastHLine (0, y, xT, col);
+    }
+    delay(100);
+    display.fillScreen(BLACK);
+  }
 }
 
 /**************************************************************
@@ -204,7 +222,7 @@ void dial() {
     ry = (float)radius * sin((float)(i - 90) * 71 / 4068);
 
     display.drawLine (x0, y0, x0 + rx, y0 + ry, WHITE);
-    delay(1);
+    delayMicroseconds(400);
     display.drawLine (x0, y0, x0 + rx, y0 + ry, BLACK);
 
     if (i < 360) {
@@ -233,7 +251,7 @@ void oscilloscope() {
   uint8_t xT = display.width();
   uint8_t yT = display.height();
 
-  for (y = 0; y < 200; y += 5) {
+  for (y = 0; y < 50; y += 5) {
     for (x = 0; x < xT - 1; x++) {
       s1 = sin((x + y) / 5.0) * 10.0 + 16.0;
       s2 = sin((x + 10 + y) / 4.0) * 10.0 + 42.0;
@@ -247,6 +265,49 @@ void oscilloscope() {
       display.drawPixel(x, (uint16_t)s1, BLACK);
       display.drawPixel(x, (uint16_t)s2, BLACK);
       delay(1);
+    }
+  }
+
+}
+
+/**************************************************************
+  Draw some zooming squares
+*************************************************************/
+void zoomingSquares() {
+
+  int i, n;
+  uint16_t col;
+  int16_t x0, y0, x1,  y1;
+  int16_t w = display.width() - 1;
+  int16_t h = display.height() - 1;
+
+  for (n = 0; n < 10; n++) {
+
+    col = random(0xffff);
+    for (i = 15; i > 0; i --) {
+
+      x0 = (int16_t)3 * i;
+      y0 = (int16_t)2 * i;
+      x1 = w - x0;
+      y1 = h - y0;
+      display.drawRect(x0, y0, x1, y1, col, col, false);
+      delay(30);
+      display.drawRect(x0, y0, x1, y1, BLACK, BLACK, false);
+      delay(30);
+    }
+  }
+
+  for (n = 0; n < 10; n++) {
+
+    col = random(0xffff);
+    for (i = 15; i > 0; i --) {
+
+      x0 = (int16_t)3 * i;
+      y0 = (int16_t)2 * i;
+      x1 = w - x0;
+      y1 = h - y0;
+      display.drawRect(x0, y0, x1, y1, col, col, true);
+      delay(30);
     }
   }
 

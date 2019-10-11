@@ -41,7 +41,7 @@
 #include "landscape.h"
 #include "portrait.h"
 
-SEMU_SSD1331 display = SEMU_SSD1331(cs, dc, rst);
+SEMU_SSD1331 display = SEMU_SSD1331(&SPI, cs, dc, rst);
 
 uint8_t modes[] = {SSD1331_ROTATE_NORMAL, SSD1331_ROTATE_NORMALFLIP,
                    SSD1331_ROTATE_180, SSD1331_ROTATE_180FLIP,

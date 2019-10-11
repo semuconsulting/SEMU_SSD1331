@@ -12,14 +12,13 @@
   please support Adafruit and open-source hardware by purchasing
   products from Adafruit!
 
-  Written by Limor Fried/Ladyada for Adafruit Industries.
+  Adapted from original by Limor Fried/Ladyada for Adafruit Industries.
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
 #include <Adafruit_GFX.h>
-#include <Adafruit_SSD1331.h>
+#include <SEMU_SSD1331.h>
 #include <SPI.h>
-
 
 // You can use any (4 or) 5 pins
 #define sclk 13
@@ -46,7 +45,7 @@
 // (for UNO thats sclk = 13 and sid = 11) and pin 10 must be
 // an output. This is much faster - also required if you want
 // to use the microSD card (see the image drawing example)
-Adafruit_SSD1331 display = Adafruit_SSD1331(&SPI, cs, dc, rst);
+SEMU_SSD1331 display = SEMU_SSD1331(&SPI, cs, dc, rst);
 
 float p = 3.1415926;
 
@@ -61,14 +60,20 @@ void setup(void) {
   time = millis() - time;
 
   Serial.println(time, DEC);
+  
+}
+
+void loop() {
+
   delay(500);
 
   lcdTestPattern();
   delay(1000);
 
   display.fillScreen(BLACK);
-  display.setCursor(0,0);
-  display.print("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa");
+  display.setCursor(0, 0);
+  //display.print("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa");
+  display.print("I'm a passenger. I stay under glass. I look through my window so bright. I see the stars come out tonight");
   delay(1000);
 
   // tft print function!
@@ -76,7 +81,7 @@ void setup(void) {
   delay(2000);
 
   //a single pixel
-  display.drawPixel(display.width()/2, display.height()/2, GREEN);
+  display.drawPixel(display.width() / 2, display.height() / 2, GREEN);
   delay(500);
 
   // line draw test
@@ -106,55 +111,53 @@ void setup(void) {
 
   Serial.println("done");
   delay(1000);
-}
 
-void loop() {
 }
 
 void testlines(uint16_t color) {
-   display.fillScreen(BLACK);
-   for (int16_t x=0; x < display.width()-1; x+=6) {
-     display.drawLine(0, 0, x, display.height()-1, color);
-   }
-   for (int16_t y=0; y < display.height()-1; y+=6) {
-     display.drawLine(0, 0, display.width()-1, y, color);
-   }
+  display.fillScreen(BLACK);
+  for (int16_t x = 0; x < display.width() - 1; x += 6) {
+    display.drawLine(0, 0, x, display.height() - 1, color);
+  }
+  for (int16_t y = 0; y < display.height() - 1; y += 6) {
+    display.drawLine(0, 0, display.width() - 1, y, color);
+  }
 
-   display.fillScreen(BLACK);
-   for (int16_t x=0; x < display.width()-1; x+=6) {
-     display.drawLine(display.width()-1, 0, x, display.height()-1, color);
-   }
-   for (int16_t y=0; y < display.height()-1; y+=6) {
-     display.drawLine(display.width()-1, 0, 0, y, color);
-   }
+  display.fillScreen(BLACK);
+  for (int16_t x = 0; x < display.width() - 1; x += 6) {
+    display.drawLine(display.width() - 1, 0, x, display.height() - 1, color);
+  }
+  for (int16_t y = 0; y < display.height() - 1; y += 6) {
+    display.drawLine(display.width() - 1, 0, 0, y, color);
+  }
 
-   // To avoid ESP8266 watchdog timer resets when not using the hardware SPI pins
-   delay(0);
+  // To avoid ESP8266 watchdog timer resets when not using the hardware SPI pins
+  delay(0);
 
-   display.fillScreen(BLACK);
-   for (int16_t x=0; x < display.width()-1; x+=6) {
-     display.drawLine(0, display.height()-1, x, 0, color);
-   }
-   for (int16_t y=0; y < display.height()-1; y+=6) {
-     display.drawLine(0, display.height()-1, display.width()-1, y, color);
-   }
+  display.fillScreen(BLACK);
+  for (int16_t x = 0; x < display.width() - 1; x += 6) {
+    display.drawLine(0, display.height() - 1, x, 0, color);
+  }
+  for (int16_t y = 0; y < display.height() - 1; y += 6) {
+    display.drawLine(0, display.height() - 1, display.width() - 1, y, color);
+  }
 
-   display.fillScreen(BLACK);
-   for (int16_t x=0; x < display.width()-1; x+=6) {
-     display.drawLine(display.width()-1, display.height()-1, x, 0, color);
-   }
-   for (int16_t y=0; y < display.height()-1; y+=6) {
-     display.drawLine(display.width()-1, display.height()-1, 0, y, color);
-   }
+  display.fillScreen(BLACK);
+  for (int16_t x = 0; x < display.width() - 1; x += 6) {
+    display.drawLine(display.width() - 1, display.height() - 1, x, 0, color);
+  }
+  for (int16_t y = 0; y < display.height() - 1; y += 6) {
+    display.drawLine(display.width() - 1, display.height() - 1, 0, y, color);
+  }
 
 }
 
 void testdrawtext(char *text, uint16_t color) {
   display.setTextSize(1);
   display.setTextColor(WHITE);
-  display.setCursor(0,0);
+  display.setCursor(0, 0);
 
-  for (uint8_t i=0; i < 168; i++) {
+  for (uint8_t i = 0; i < 168; i++) {
     if (i == '\n') continue;
     display.write(i);
     if ((i > 0) && (i % 21 == 0))
@@ -163,41 +166,41 @@ void testdrawtext(char *text, uint16_t color) {
 }
 
 void testfastlines(uint16_t color1, uint16_t color2) {
-   display.fillScreen(BLACK);
-   for (int16_t y=0; y < display.height()-1; y+=5) {
-     display.drawFastHLine(0, y, display.width()-1, color1);
-   }
-   for (int16_t x=0; x < display.width()-1; x+=5) {
-     display.drawFastVLine(x, 0, display.height()-1, color2);
-   }
+  display.fillScreen(BLACK);
+  for (int16_t y = 0; y < display.height() - 1; y += 5) {
+    display.drawFastHLine(0, y, display.width() - 1, color1);
+  }
+  for (int16_t x = 0; x < display.width() - 1; x += 5) {
+    display.drawFastVLine(x, 0, display.height() - 1, color2);
+  }
 }
 
 void testdrawrects(uint16_t color) {
- display.fillScreen(BLACK);
- for (int16_t x=0; x < display.height()-1; x+=6) {
-   display.drawRect((display.width()-1)/2 -x/2, (display.height()-1)/2 -x/2 , x, x, color);
- }
+  display.fillScreen(BLACK);
+  for (int16_t x = display.height() - 1; x > 6; x -= 6) {
+    display.drawRect((display.width() - 1) / 2 - x / 2, (display.height() - 1) / 2 - x / 2 , x, x, color);
+  }
 }
 
 void testfillrects(uint16_t color1, uint16_t color2) {
- display.fillScreen(BLACK);
- for (int16_t x=display.height()-1; x > 6; x-=6) {
-   display.fillRect((display.width()-1)/2 -x/2, (display.height()-1)/2 -x/2 , x, x, color1);
-   display.drawRect((display.width()-1)/2 -x/2, (display.height()-1)/2 -x/2 , x, x, color2);
- }
+  display.fillScreen(BLACK);
+  for (int16_t x = display.height() - 1; x > 6; x -= 6) {
+    display.fillRect((display.width() - 1) / 2 - x / 2, (display.height() - 1) / 2 - x / 2 , x, x, color1);
+    display.drawRect((display.width() - 1) / 2 - x / 2, (display.height() - 1) / 2 - x / 2 , x, x, color2);
+  }
 }
 
 void testfillcircles(uint8_t radius, uint16_t color) {
-  for (uint8_t x=radius; x < display.width()-1; x+=radius*2) {
-    for (uint8_t y=radius; y < display.height()-1; y+=radius*2) {
+  for (uint8_t x = radius; x < display.width() - 1; x += radius * 2) {
+    for (uint8_t y = radius; y < display.height() - 1; y += radius * 2) {
       display.fillCircle(x, y, radius, color);
     }
   }
 }
 
 void testdrawcircles(uint8_t radius, uint16_t color) {
-  for (int16_t x=0; x < display.width()-1+radius; x+=radius*2) {
-    for (int16_t y=0; y < display.height()-1+radius; y+=radius*2) {
+  for (int16_t x = 0; x < display.width() - 1 + radius; x += radius * 2) {
+    for (int16_t y = 0; y < display.height() - 1 + radius; y += radius * 2) {
       display.drawCircle(x, y, radius, color);
     }
   }
@@ -207,16 +210,16 @@ void testtriangles() {
   display.fillScreen(BLACK);
   int color = 0xF800;
   int t;
-  int w = display.width()/2;
-  int x = display.height();
+  int w = display.width() / 2;
+  int x = display.height() - 1;
   int y = 0;
-  int z = display.width();
-  for (t = 0 ; t <= 15; t+=1) {
+  int z = display.width() - 1;
+  for (t = 0 ; t <= 15; t += 1) {
     display.drawTriangle(w, y, y, x, z, x, color);
-    x-=4;
-    y+=4;
-    z-=4;
-    color+=100;
+    x -= 4;
+    y += 4;
+    z -= 4;
+    color += 100;
   }
 }
 
@@ -225,20 +228,20 @@ void testroundrects() {
   int color = 100;
   int i;
   int t;
-  for(t = 0 ; t <= 4; t+=1) {
+  for (t = 0 ; t <= 4; t += 1) {
     int x = 0;
     int y = 0;
     int w = display.width();
     int h = display.height();
-    for(i = 0 ; i <= 8; i+=1) {
+    for (i = 0 ; i <= 8; i += 1) {
       display.drawRoundRect(x, y, w, h, 5, color);
-      x+=2;
-      y+=3;
-      w-=4;
-      h-=6;
-      color+=1100;
+      x += 2;
+      y += 3;
+      w -= 4;
+      h -= 6;
+      color += 1100;
     }
-    color+=100;
+    color += 100;
   }
 }
 
@@ -276,7 +279,7 @@ void tftPrintTest() {
 }
 
 void mediabuttons() {
- // play
+  // play
   display.fillScreen(BLACK);
   display.fillRoundRect(25, 10, 78, 60, 8, WHITE);
   display.fillTriangle(42, 20, 42, 60, 90, 40, RED);
@@ -303,7 +306,7 @@ void mediabuttons() {
 /**************************************************************************/
 void lcdTestPattern(void)
 {
-  uint8_t w,h;
+  uint8_t w, h;
   display.setAddrWindow(0, 0, 96, 64);
 
   for (h = 0; h < 64; h++) {
