@@ -1,0 +1,26 @@
+Benchmark using SEMU_SSD1331 library:
+
+Starting SSD1331 test routines..
+Test iteration started at: 1921
+Line patterns took: 6710
+Zooming rectangles took: 14684
+Random lines took: 702
+Rotating dial took: 7732
+Oscilloscope took: 11787
+Random rectangles took: 33137
+Total duration of tests: 79766
+
+Benchmark using Adafruit_SSD1331 library:
+
+Starting SSD1331 test routines..
+Test iteration started at: 1914
+Line patterns took: 85226
+Zooming rectangles took: 97930
+Random lines took: 19181
+Rotating dial took: 95124
+Oscilloscope took: 11787
+Random rectangles took: 286407
+Total duration of tests: 609907
+
+SEMU_SSD1331 library is around 7-8 times faster than Adafruit_SSD1331 library for
+rectilinear pattern tests.

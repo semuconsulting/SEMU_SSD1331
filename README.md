@@ -20,12 +20,12 @@ The tImage (16-bit RGB color) and bwImage (8-bit monochrome) templates in the lc
 
 ## Current Status
 
-The following hardware graphics functions are implemented, all of which are significantly faster that the equivalent software routines:
+The following bitmap display functions are implemented using various hardware and software optimisations:
 * drawImage (from flash (PROGMEM) memory map. Utilises hardware pointer auto-increment to improve speed). Includes support for transparent images
 with specified transparency colour.
 * drawMaskedImage (draw 'masked' image with specified mask overlay (matte) and colour)
 
-The following hardware commands override Adafruit_GFX virtual methods:
+The following hardware-optimised commands override Adafruit_GFX virtual methods and are around 7-8 times faster than the Adafruit software methods:
 * drawLine (draw line between specified coordinates)
 * drawRect (draw rectangular box of specified start point, width and height)
 * fillRect (draw filled rectangle of specified start point, width and height)

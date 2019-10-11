@@ -1,6 +1,7 @@
 
 /***************************************************
-  SEMU_SSD1331 library patternTest example
+  SEMU_SSD1331 library patternTest example which can be used to benchmark
+  against standard Adafruit_SSD1331 library.
 
   Test of various point, line and rectangle drawing routines
   using hardware optimisation.
@@ -11,27 +12,26 @@
   is often somewhat confusing, so double check the manufacturer's/supplier's
   pin specifications.
 
-  OLED Pin		Purpose						Arduino Pin
+  OLED Pin		Purpose					Arduino Pin
   -------------------------------------------------------------------------
   G/GND			Ground						GND
-  +/VCC			Supply voltage				+5V (+3.3V on some boards - check specs)
-  DC			Data						Digital pin 8
-  R/RST			Reset						Digital pin 9
-  OC or CS		SPI Chip select for OLED	Digital pin 10 (CS)
+  +/VCC			Supply voltage	  +5V (+3.3V on some boards - check specs)
+  DC			  Data						  Digital pin 8
+  R/RST			Reset						  Digital pin 9
+  OC or CS	SPI Chip select for OLED	Digital pin 10 (CS)
   SI/SDA		SPI MOSI					Digital pin 11 (DOUT)
-  CK/SCL		SPI Clock (SCLK)			Digital pin 13 (SCK)
+  CK/SCL		SPI Clock (SCLK)	Digital pin 13 (SCK)
 
   Following only applicable to boards with SD card readers - not used in this example.
-  SO			SPI MISO
-  SC			SPI Chip select for SD card reader (if fitted)
-  CD			SD card reader detect
+  SO			  SPI MISO
+  SC			  SPI Chip select for SD card reader (if fitted)
+  CD			  SD card reader detect
 
  ****************************************************/
 //#define DEBUG 0
 
-#include <Adafruit_GFX.h>
 #include <SEMU_SSD1331.h>
-#include <SPI.h>
+//#include <Adafruit_SSD1331.h>
 
 #define sclk 13     // SPI clock - marked 'CK' or 'SCL' on most SSD1331 OLED boards
 #define mosi 11     // SPI master out, slave in - marked 'SI' or 'SDA' on most SSD1331 OLED boards
@@ -40,7 +40,7 @@
 #define dc   8      // SPI data - marked 'DC' on most SSD1331 OLED boards
 
 // Color definitions
-#define  BLACK           0x0000
+#define BLACK           0x0000
 #define BLUE            0x001F
 #define RED             0xF800
 #define GREEN           0x07E0
@@ -53,102 +53,108 @@
 
 // set up SPI display - uses hardware SPI pins on Teensy (MOSI 11 SCLK 13)
 SEMU_SSD1331 display = SEMU_SSD1331(&SPI, cs, dc, rst);
+//Adafruit_SSD1331 display = Adafruit_SSD1331(&SPI, cs, dc, rst);
 
-uint8_t i;
 float f;
-unsigned long period;
+unsigned long totalDuration, testDuration;
 
 void setup(void) {
 
-#ifdef DEBUG
   while (!Serial);    // wait for Serial port to open - may take a few seconds on Teensy and Micro boards
   Serial.begin(9600);
   Serial.println("Starting SSD1331 test routines..");
-#endif
-
   randomSeed(analogRead(0));
-
   display.begin(0x72);
-  display.fillScreen(BLACK);
 
 }
 
 void loop() {
 
-  display.setOrientation(SSD1331_ROTATE_NORMAL);
-  display.fillScreen(BLACK);
+  totalDuration = millis();
+  Serial.print("Test iteration started at: ");
+  Serial.println(totalDuration, DEC);
 
+  display.fillScreen(BLACK);
+  testDuration = millis();
   patterns();
+  Serial.print("Line patterns took: ");
+  Serial.println(millis() - testDuration, DEC);
   delay(PAUSE);
 
   display.fillScreen(BLACK);
+  testDuration = millis();
   zoomingSquares();
+  Serial.print("Zooming rectangles took: ");
+  Serial.println(millis() - testDuration, DEC);
   delay(PAUSE);
 
   display.fillScreen(BLACK);
-  period = millis() + 3000;
-  while (millis() < period) {
-    randomlines();
-  }
+  testDuration = millis();
+  randomlines(500);
+  Serial.print("Random lines took: ");
+  Serial.println(millis() - testDuration, DEC);
   delay(PAUSE);
 
   display.fillScreen(BLACK);
+  testDuration = millis();
   dial();
+  Serial.print("Rotating dial took: ");
+  Serial.println(millis() - testDuration, DEC);
   delay(PAUSE);
 
   display.fillScreen(BLACK);
-  period = millis() + 3000;
-  while (millis() < period) {
-    oscilloscope();
-  }
+  testDuration = millis();
+  oscilloscope(100);
+  Serial.print("Oscilloscope took: ");
+  Serial.println(millis() - testDuration, DEC);
   delay(PAUSE);
 
   display.fillScreen(BLACK);
-  period = millis() + 3000;
-  while (millis() < period) {
-    rectangles(32);
-  }
+  testDuration = millis();
+  rectangles(32, 100);
+  rectangles(16, 100);
+  rectangles(8, 100);
+  Serial.print("Random rectangles took: ");
+  Serial.println(millis() - testDuration, DEC);
 
-  display.fillScreen(BLACK);
-  period = millis() + 3000;
-  while (millis() < period) {
-    rectangles(16);
-  }
-
-  display.fillScreen(BLACK);
-  period = millis() + 5000;
-  while (millis() < period) {
-    rectangles(8);
-  }
-
+  Serial.print("Total duration of tests: ");
+  Serial.println(millis() - totalDuration, DEC);
 }
 
 /**************************************************************
   Draw lots of rectangles in random colours
 *************************************************************/
-void rectangles(uint8_t rsize) {
+void rectangles(uint8_t rsize, uint16_t iterations) {
 
-  uint8_t x, y , filled;
+  uint16_t i, x, y , filled;
 
-  for (x = 0; x < 96; x += rsize) {
-    for (y = 0; y < 64; y += rsize) {
-      filled = random(2);
-      if (filled < 1) {
-        display.drawRect (x, y, x + rsize - 1, y + rsize - 1, random(0xFFFF), random(0xFFFF), true);
+  for (i = 0; i < iterations; i++) {
+    for (x = 0; x < 96; x += rsize) {
+      for (y = 0; y < 64; y += rsize) {
+        filled = random(2);
+        if (filled < 1) {
+          display.drawRect (x, y, (x + rsize - 1) - x, (y + rsize - 1) - y, random(0xffff));
+        }
+        else {
+          display.fillRect (x, y, (x + rsize - 1) - x, (y + rsize - 1) - y, random(0xffff));
+        }
       }
-      else {
-        display.drawRect (x, y, x + rsize - 1, y + rsize - 1, random(0xFFFF), random(0xFFFF), false);
-      }
+
     }
-
   }
+
 }
 
 /**************************************************************
   Draw lots of random lines in random colours
 *************************************************************/
-void randomlines() {
-  display.drawLine (random(95), random(63), random(95), random(63), random(0xFFFF));
+void randomlines(uint16_t iterations) {
+
+  uint16_t i;
+
+  for (i = 0; i < iterations; i++) {
+    display.drawLine (random(95), random(63), random(95), random(63), random(0xffff));
+  }
 }
 
 /**************************************************************
@@ -211,6 +217,7 @@ void patterns() {
   Draw a revolving dial
 *************************************************************/
 void dial() {
+
   uint16_t i;
   uint8_t radius = 28;
   uint8_t x0 = 48;
@@ -244,14 +251,15 @@ void dial() {
 /**************************************************************
   Simulate an oscilloscope display with two waveforms
 *************************************************************/
-void oscilloscope() {
+void oscilloscope(uint16_t iterations) {
+
   uint16_t x, y;
   float s1, s2;
 
   uint8_t xT = display.width();
   uint8_t yT = display.height();
 
-  for (y = 0; y < 50; y += 5) {
+  for (y = 0; y < iterations; y += 5) {
     for (x = 0; x < xT - 1; x++) {
       s1 = sin((x + y) / 5.0) * 10.0 + 16.0;
       s2 = sin((x + 10 + y) / 4.0) * 10.0 + 42.0;
@@ -275,7 +283,7 @@ void oscilloscope() {
 *************************************************************/
 void zoomingSquares() {
 
-  int i, n;
+  uint16_t i, n;
   uint16_t col;
   int16_t x0, y0, x1,  y1;
   int16_t w = display.width() - 1;
@@ -290,9 +298,9 @@ void zoomingSquares() {
       y0 = (int16_t)2 * i;
       x1 = w - x0;
       y1 = h - y0;
-      display.drawRect(x0, y0, x1, y1, col, col, false);
+      display.drawRect(x0, y0, x1 - x0, y1 - y0, col);
       delay(30);
-      display.drawRect(x0, y0, x1, y1, BLACK, BLACK, false);
+      display.drawRect(x0, y0, x1 - x0, y1 - y0, BLACK);
       delay(30);
     }
   }
@@ -306,7 +314,7 @@ void zoomingSquares() {
       y0 = (int16_t)2 * i;
       x1 = w - x0;
       y1 = h - y0;
-      display.drawRect(x0, y0, x1, y1, col, col, true);
+      display.fillRect(x0, y0, x1 - x0, y1 - y0, col);
       delay(30);
     }
   }

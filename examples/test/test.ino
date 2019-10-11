@@ -12,7 +12,8 @@
   please support Adafruit and open-source hardware by purchasing
   products from Adafruit!
 
-  Adapted from original by Limor Fried/Ladyada for Adafruit Industries.
+  Adapted to use the SEMU_SSD1331 library from original by Limor Fried/Ladyada 
+  for Adafruit Industries.
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
@@ -72,8 +73,7 @@ void loop() {
 
   display.fillScreen(BLACK);
   display.setCursor(0, 0);
-  //display.print("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa");
-  display.print("I'm a passenger. I stay under glass. I look through my window so bright. I see the stars come out tonight");
+  display.print("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa");
   delay(1000);
 
   // tft print function!
