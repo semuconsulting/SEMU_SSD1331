@@ -35,13 +35,13 @@ void SEMU_SSD1331::setAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
 
   uint8_t x1 = x;
   uint8_t y1 = y;
-  if (x1 > 95) x1 = 95;
-  if (y1 > 63) y1 = 63;
+  if (x1 > _width-1) x1 = _width-1;
+  if (y1 > _height-1) y1 = _height-1;
 
   uint8_t x2 = (x+w-1);
   uint8_t y2 = (y+h-1);
-  if (x2 > 95) x2 = 95;
-  if (y2 > 63) y2 = 63;
+  if (x2 > _width-1) x2 = _width-1;
+  if (y2 > _height-1) y2 = _height-1;
 
   if (x1 > x2) {
     uint8_t t = x2;
@@ -57,7 +57,6 @@ void SEMU_SSD1331::setAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
   sendCommand(0x15); // Column addr set
   sendCommand(x1);
   sendCommand(x2);
-
   sendCommand(0x75); // Column addr set
   sendCommand(y1);
   sendCommand(y2);
@@ -121,9 +120,6 @@ void SEMU_SSD1331::begin(uint32_t freq) {
     _width  = TFTWIDTH;
     _height = TFTHEIGHT;
 }
-
-
-
 
 /**************************************************************************/
 /*!
@@ -230,7 +226,7 @@ switch (orientation) {
 /**************************************************************************/
 /*!
     @brief  Sets display mode from range of supported modes
-	  @param  mode  integer representing mode
+	@param  mode  integer representing mode
 	
 */
 /**************************************************************************/
@@ -288,15 +284,20 @@ void SEMU_SSD1331::setGrayScale(float gamma) {
 /*!
     @brief  Implements hardware CLEAR command
     @param    x0     from top coordinate
-	  @param    y0     from leftmost coordinate
-	  @param    x1     from bottom coordinate
-	  @param    y1     from rightmost coordinate
+	@param    y0     from leftmost coordinate
+	@param    x1     from bottom coordinate
+	@param    y1     from rightmost coordinate
 	
 */
 /**************************************************************************/
 void SEMU_SSD1331::clearWindow(uint8_t x0, uint8_t y0, uint8_t x1,
 	uint8_t y1) {
 
+	if (x0 > _width-1) x0 = _width-1;
+	if (y0 > _height-1) y0 = _height-1;
+	if (x1 > _width-1) x1 = _width-1;
+	if (y1 > _height-1) y1 = _height-1;
+  
 	startWrite();
 	writeCommand(SSD1331_CMD_CLEAR);
 	writeCommand(x0);
@@ -319,20 +320,104 @@ void SEMU_SSD1331::clearWindow() {
 	clearWindow(0, 0, TFTWIDTH - 1, TFTHEIGHT - 1);
 
 }
+/**************************************************************************/
+/*!
+    @brief  Implements hardware COPY command
+    @param    x0     first x coordinate
+	@param    y0     first y coordinate
+	@param    x1     second x coordinate
+	@param    y1     second y coordinate
+	@param    x2     destination top x coordinate
+	@param    y2     destination top y coordinate
+	
+*/
+/**************************************************************************/
+void SEMU_SSD1331::copyWindow(uint8_t x0, uint8_t y0, uint8_t x1,
+	uint8_t y1, uint8_t x2, uint8_t y2) {
 
+	if (x0 > _width-1) x0 = _width-1;
+	if (y0 > _height-1) y0 = _height-1;
+	if (x1 > _width-1) x1 = _width-1;
+	if (y1 > _height-1) y1 = _height-1;
+	if (x2 > _width-1) x2 = _width-1;
+	if (y2 > _height-1) y2 = _height-1;
+  
+	startWrite();
+	writeCommand(SSD1331_CMD_COPY);
+	writeCommand(x0);
+	writeCommand(y0);
+	writeCommand(x1);
+	writeCommand(y1);
+	writeCommand(x2);
+	writeCommand(y2);
+	endWrite();
+	delayMicroseconds(SSD1331_DELAYS_HWFILL);
+
+}
+
+/**************************************************************************/
+/*!
+    @brief  Implements non-overlapping 'MOVE' via hardware COPY and CLEAR commands
+    @param    x0     first x coordinate
+	@param    y0     first y coordinate
+	@param    x1     second x coordinate
+	@param    y1     second y coordinate
+	@param    x2     destination top x coordinate
+	@param    y2     destination top y coordinate
+	
+*/
+/**************************************************************************/
+void SEMU_SSD1331::moveWindow(uint8_t x0, uint8_t y0, uint8_t x1,
+	uint8_t y1, uint8_t x2, uint8_t y2) {
+
+	// Crude hardware implementation which only supports
+	// non-overlapping moves
+
+	if (x0 > _width-1) x0 = _width-1;
+	if (y0 > _height-1) y0 = _height-1;
+	if (x1 > _width-1) x1 = _width-1;
+	if (y1 > _height-1) y1 = _height-1;
+	if (x2 > _width-1) x2 = _width-1;
+	if (y2 > _height-1) y2 = _height-1;
+	
+	startWrite();
+	writeCommand(SSD1331_CMD_COPY);
+	writeCommand(x0);
+	writeCommand(y0);
+	writeCommand(x1);
+	writeCommand(y1);
+	writeCommand(x2);
+	writeCommand(y2);
+	endWrite();
+	delayMicroseconds(SSD1331_DELAYS_HWFILL);
+	startWrite();
+	writeCommand(SSD1331_CMD_CLEAR);
+	writeCommand(x0);
+	writeCommand(y0);
+	writeCommand(x1);
+	writeCommand(y1);
+	endWrite();
+	delayMicroseconds(SSD1331_DELAYS_HWFILL);
+
+}
 /**************************************************************************/
 /*!
     @brief  Implements hardware DIM command
     @param    x0     top coordinate
-	  @param    y0     leftmost coordinate
-	  @param    x1     bottom coordinate
-	  @param    y1     rightmost coordinate
+	@param    y0     leftmost coordinate
+	@param    x1     bottom coordinate
+	@param    y1     rightmost coordinate
 	
 */
 /**************************************************************************/
 void SEMU_SSD1331::dimWindow(uint8_t x0, uint8_t y0, uint8_t x1,
 	uint8_t y1) {
 
+	if (x0 > _width-1) x0 = _width-1;
+	if (y0 > _height-1) y0 = _height-1;
+	if (x1 > _width-1) x1 = _width-1;
+	if (y1 > _height-1) y1 = _height-1;
+	
 	startWrite();
 	writeCommand(SSD1331_CMD_DIM);
 	writeCommand(x0);
@@ -348,10 +433,10 @@ void SEMU_SSD1331::dimWindow(uint8_t x0, uint8_t y0, uint8_t x1,
 /*!
     @brief  Implements hardware SETSCROLL command
     @param    x_speed     horizontal scroll speed
-	  @param    y_speed     vertical scroll speed
-	  @param    y0          starting row
-	  @param    rows        number of rows to scroll
-	  @param    interval    scrolling offset
+	@param    y_speed     vertical scroll speed
+	@param    y0          starting row
+	@param    rows        number of rows to scroll
+	@param    interval    scrolling offset
 	
 */
 /**************************************************************************/
@@ -441,7 +526,7 @@ void SEMU_SSD1331::stopScroll() {
     @param    *img  pointer to PROGMEM image bitmap
 */
 /**************************************************************************/
-void SEMU_SSD1331::drawImage(uint16_t x0, uint16_t y0, const tImage *img) {
+void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const tImage *img) {
 
 	uint16_t x, y, px, color;
 	bool skipping = false;
@@ -486,7 +571,7 @@ void SEMU_SSD1331::drawImage(uint16_t x0, uint16_t y0, const tImage *img) {
     @param    *img  pointer to PROGMEM image bitmap
 */
 /**************************************************************************/
-void SEMU_SSD1331::drawImage(uint16_t x0, uint16_t y0, const bwImage *img) {
+void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const bwImage *img) {
 
 	uint16_t x, y; 
 	uint8_t px, color;
@@ -558,7 +643,7 @@ void SEMU_SSD1331::drawImage(const bwImage *img) {
 	  @param    *mask pointer to PROGMEM mask bitmap
 */
 /**************************************************************************/
-void SEMU_SSD1331::drawMaskedImage(uint16_t x0, uint16_t y0,
+void SEMU_SSD1331::drawMaskedImage(uint8_t x0, uint8_t y0,
 	const tImage *img, const tImage *mask) {
 
 	uint16_t x, y;
@@ -604,7 +689,7 @@ void SEMU_SSD1331::drawMaskedImage(uint16_t x0, uint16_t y0,
 	  @param    *mask pointer to PROGMEM mask bitmap
 */
 /**************************************************************************/
-void SEMU_SSD1331::drawMaskedSegment(uint16_t x0, uint16_t y0,
+void SEMU_SSD1331::drawMaskedSegment(uint8_t x0, uint8_t y0,
 	const tImage *img, const tImage *mask) {
 
 	uint16_t x, y;
@@ -662,6 +747,11 @@ void SEMU_SSD1331::drawMaskedSegment(uint16_t x0, uint16_t y0,
 void SEMU_SSD1331::drawLine(int16_t x0, int16_t y0, int16_t x1,
 	int16_t y1, uint16_t color) {
 
+	if (x0 > _width-1) x0 = _width-1;
+	if (y0 > _height-1) y0 = _height-1;
+	if (x1 > _width-1) x1 = _width-1;
+	if (y1 > _height-1) y1 = _height-1;
+	
 	startWrite();
 	writeCommand(SSD1331_CMD_DRAWLINE);
 	writeCommand(x0);
@@ -684,15 +774,20 @@ void SEMU_SSD1331::drawLine(int16_t x0, int16_t y0, int16_t x1,
     @param   y0    y (vertical) starting rectangle coordinate
     @param   x1    x (horizontal) ending rectangle coordinate
     @param   y1    y (vertical) ending rectangle coordinate
-	  @param   border_color border color of rectangle
-	  @param   fill_color fill color of rectangle	  
-	  @param   filled whether filled or not  
+	@param   border_color border color of rectangle
+	@param   fill_color fill color of rectangle	  
+	@param   filled whether filled or not  
 */
 /**************************************************************************/
 
 void SEMU_SSD1331::drawRect(int16_t x0, int16_t y0, int16_t x1, int16_t y1, 
   uint16_t border_color, uint16_t fill_color, bool filled) {
 
+	if (x0 > _width-1) x0 = _width-1;
+	if (y0 > _height-1) y0 = _height-1;
+	if (x1 > _width-1) x1 = _width-1;
+	if (y1 > _height-1) y1 = _height-1;
+	
 	startWrite();
 	writeCommand(SSD1331_CMD_FILL);
 	writeCommand(filled);
@@ -789,7 +884,7 @@ void SEMU_SSD1331::drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color
 /**************************************************************************/
 /*!
     @brief  Fills screen with specified color using hardware FILL command
-	  @param   color fill color
+	@param   color fill color
 */
 /**************************************************************************/
 
@@ -807,3 +902,65 @@ void SEMU_SSD1331::fillScreen(uint16_t color) {
 uint8_t SEMU_SSD1331::getOrientation(void){
 	return _orientation;
 }
+
+/**************************************************************************/
+/*!
+    @brief  Check that coordinates are within physical display boundaries
+	@param  x0 first x coordinate
+	@param  y0 first 7 coordinate
+	@param  x1 second x coordinate (optional, defaults to 0)
+	@param  y1 second y coordinate (optional, defaults to 0)
+	@param  x2 third x coordinate (optional, defaults to 0)
+	@param  y2 third y coordinate (optional, defaults to 0)
+	
+*/
+/**************************************************************************/
+bool SEMU_SSD1331::inBounds(int16_t x0, int16_t y0, int16_t x1,
+	int16_t y1, int16_t x2, int16_t y2) {
+
+	return ((y0 >= _height) || (y1 >= _height) || (y2 >= _height)
+		|| (x0 >= _width) || (x1 >= _width) || (x2 >= _width));
+
+}
+
+/**************************************************************************/
+/*!
+    @brief  Converts individual RGB values into single R5G6B5 pixel
+	@param  r red value
+	@param  g green value
+	@param  r blue value
+*/
+/**************************************************************************/
+uint16_t rgb_to_pixel(uint8_t r, uint8_t g, uint8_t b) {
+	uint16_t pix = (r << 11) + (g << 5) + b;
+	return pix;
+}
+
+/**************************************************************************/
+/*!
+    @brief  Converts Color structure into single R5G6B5 pixel
+	@param  col Color structure
+*/
+/**************************************************************************/
+uint16_t rgb_to_pixel(Color col) {
+	uint16_t pix = (col.r << 11) + (col.g << 5) + col.b;
+	return pix;
+}
+
+/**************************************************************************/
+/*!
+    @brief  Converts single R5G6B5 pixel into Color structure
+	@param  pixel R5G6B5 pixel
+
+*/
+/**************************************************************************/
+Color pixel_to_rgb(uint16_t pixel) {
+	Color col;
+	col.r = (pixel & 0b1111100000000000) >> 11;
+	col.g = (pixel & 0b0000011111100000) >> 5;
+	col.b = pixel & 0b000000000011111;
+	return col;
+}
+
+
+

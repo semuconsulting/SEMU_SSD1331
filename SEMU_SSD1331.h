@@ -98,28 +98,28 @@
  
 #define SSD1331_PORTRAIT            0x01    // 0b00000001
 #define SSD1331_FLIP_X              0x02    // 0b00000010
-#define SSD1331_BGR                 0x04		// 0b00000100
+#define SSD1331_BGR                 0x04	// 0b00000100
 #define SSD1331_FLIP_LR             0x08    // 0b00001000
-#define SSD1331_FLIP_Y              0x10		// 0b00010000
-#define SSD1331_SPLIT_OE            0x20		// 0b00100000
-#define SSD1331_COLOR_65K1          0x40		// 0b01000000
-#define SSD1331_COLOR_65K2          0x80		// 0b10000000
+#define SSD1331_FLIP_Y              0x10	// 0b00010000
+#define SSD1331_SPLIT_OE            0x20	// 0b00100000
+#define SSD1331_COLOR_65K1          0x40	// 0b01000000
+#define SSD1331_COLOR_65K2          0x80	// 0b10000000
 
 // SSD1331 Hardware orientation modes
-#define SSD1331_ROTATE_NORMAL       0x72 		// 0b01110010
-#define SSD1331_ROTATE_NORMALFLIP  	0x70 		// 0b01110000
-#define SSD1331_ROTATE_090       	  0x71 		// 0b01110001
-#define SSD1331_ROTATE_090FLIP   	  0x61 		// 0b01100001
-#define SSD1331_ROTATE_180		 	    0x60 		// 0b01100000
-#define SSD1331_ROTATE_180FLIP	 	  0x62 		// 0b01100010
-#define SSD1331_ROTATE_270		 	    0x63 		// 0b01100011
-#define SSD1331_ROTATE_270FLIP	 	  0x73 		// 0b01110011
+#define SSD1331_ROTATE_NORMAL       0x72 	// 0b01110010
+#define SSD1331_ROTATE_NORMALFLIP  	0x70 	// 0b01110000
+#define SSD1331_ROTATE_090       	0x71 	// 0b01110001
+#define SSD1331_ROTATE_090FLIP   	0x61 	// 0b01100001
+#define SSD1331_ROTATE_180		 	0x60 	// 0b01100000
+#define SSD1331_ROTATE_180FLIP	 	0x62 	// 0b01100010
+#define SSD1331_ROTATE_270		 	0x63 	// 0b01100011
+#define SSD1331_ROTATE_270FLIP	 	0x73 	// 0b01110011
 
 // SSD1331 Hardware scroll modes
-#define SSD1331_SCROLL_OFF		 	    0x00		// scrolling inactive
-#define SSD1331_SCROLL_ON		 	      0x01		// scrolling active
-#define SSD1331_SCROLL_X	 	        0x02		// scrolling in horizontal direction
-#define SSD1331_SCROLL_Y	 	        0x04    // scrolling in vertical direction
+#define SSD1331_SCROLL_OFF		 	0x00	// scrolling inactive
+#define SSD1331_SCROLL_ON		 	0x01	// scrolling active
+#define SSD1331_SCROLL_X	 	    0x02	// scrolling in horizontal direction
+#define SSD1331_SCROLL_Y	 	    0x04    // scrolling in vertical direction
 
 // Optimised function to read image header file from program memory
 template<typename T> T PROGMEM_read(const T * sce) {
@@ -150,6 +150,13 @@ typedef struct PROGMEM {
 	uint8_t tcolor;     // transparency color
 } bwImage;
 
+// RGB colour structure 
+struct Color {
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+};
+
 /// Class to manage hardware interface with SSD1331 chipset
 class SEMU_SSD1331 : public Adafruit_SPITFT {
  public:
@@ -169,19 +176,27 @@ class SEMU_SSD1331 : public Adafruit_SPITFT {
   void setGrayScale(float gamma);
   void clearWindow(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1);
 	void clearWindow();
-	void dimWindow(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1);
-	void setScroll(uint8_t x_speed, uint8_t y_speed, uint8_t y0, uint8_t rows,
-		uint8_t interval);
+  void copyWindow(uint8_t x0, uint8_t y0, uint8_t x1,
+	uint8_t y1, uint8_t x2, uint8_t y2);
+  void moveWindow(uint8_t x0, uint8_t y0, uint8_t x1,
+	uint8_t y1, uint8_t x2, uint8_t y2);
+  void dimWindow(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1);
+  void setScroll(uint8_t x_speed, uint8_t y_speed, uint8_t y0, uint8_t rows,
+	uint8_t interval);
   void startScroll(void);
   void stopScroll(void);
   
-  void drawImage(uint16_t x0, uint16_t y0, const tImage *img);
-  void drawImage(uint16_t x0, uint16_t y0, const bwImage *img);
+  void drawImage(uint8_t x0, uint8_t y0, const tImage *img);
+  void drawImage(uint8_t x0, uint8_t y0, const bwImage *img);
   void drawImage(const tImage *img);
   void drawImage(const bwImage *img);
-  void drawMaskedImage(uint16_t x0, uint16_t y0, const tImage *img, const tImage *mask);
-  void drawMaskedSegment(uint16_t x0, uint16_t y0, const tImage *img, const tImage *mask);
+  void drawMaskedImage(uint8_t x0, uint8_t y0, const tImage *img, const tImage *mask);
+  void drawMaskedSegment(uint8_t x0, uint8_t y0, const tImage *img, const tImage *mask);
 	
+  bool inBounds(int16_t x0, int16_t y0, int16_t x1 = 0, int16_t y1 = 0,
+  int16_t x2 = 0, int16_t y2 = 0);
+  uint8_t getOrientation(void);
+  
 	/*****************************************************************************
 	Adafruit_GFX line and rectangle drawing potential overrides
 	*****************************************************************************/
@@ -193,10 +208,7 @@ class SEMU_SSD1331 : public Adafruit_SPITFT {
   void drawRect(int16_t x0, int16_t y0, int16_t x1, int16_t y1, 
     uint16_t border_color, uint16_t fill_color, bool filled);
   void drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
-
-	// getter functions
-	uint8_t getOrientation(void);
-	
+  
   static const int16_t TFTWIDTH = 96;    ///< The width of the display
   static const int16_t TFTHEIGHT = 64;   ///< The height of the display
  
@@ -208,5 +220,10 @@ class SEMU_SSD1331 : public Adafruit_SPITFT {
    volatile uint8_t _mode = SSD1331_CMD_NORMALDISPLAY;
 
 };
+
+// Out of class color helper functions
+uint16_t rgb_to_pixel(Color col);
+uint16_t rgb_to_pixel(uint8_t r, uint8_t g, uint8_t b);
+Color pixel_to_rgb(uint16_t pixel);
 
 #endif
