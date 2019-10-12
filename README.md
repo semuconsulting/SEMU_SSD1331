@@ -25,7 +25,7 @@ The following bitmap display functions are implemented using various hardware an
 with specified transparency colour.
 * drawMaskedImage (draw 'masked' image with specified mask overlay (matte) and colour)
 
-The following hardware-optimised commands override Adafruit_GFX virtual methods and are around 7-8 times faster than the Adafruit software methods:
+The following hardware-optimised commands override Adafruit_GFX virtual methods and are typically 7-8 times faster than the generic software methods:
 * drawLine (draw line between specified coordinates)
 * drawRect (draw rectangular box of specified start point, width and height)
 * fillRect (draw filled rectangle of specified start point, width and height)
@@ -33,22 +33,22 @@ The following hardware-optimised commands override Adafruit_GFX virtual methods 
 * drawFastHLine (draw horizontal line of specified width)
 * fillScreen (fill screen with specified color)
 
-The following hardware configuration functions are implemented:
+The following SSD1331 hardware functions are implemented:
 * setOrientation (8 permutations available - normal, 90, 180 and 270 rotation, each of which can also be mirrored)
 * setGrayScale (by passing decimal gamma value)
 * resetGrayScale (linear gray scale i.e. gamma = 1.0)
 * clearWindow
-* dimWindow
+* copyWindow (copy section of display to another location)
+* moveWindow ('move' section of display to another location - currently non-overlapping moves only)
+* dimWindow (dim section of display accordinging to current grayscale setting)
 * display on/off/rotate/invert ('negative')
 * display scrolling (horizontal and/or vertical, all or selected rows)
 
 ## To Do
 
-* Implement improved boundary checking on input coordinates. For now, display will 
-normally just wrap-around based on current REMAP mode if coordinates exceed boundaries.
-* Implement hardware copy and move commands which support overlapping moves.
-* Some other specialised bitmap image handling utilities, possibly including support for
-3D re-projection.
+* Implement improved orientation-specific boundary checking. For now, display will normally just wrap-around if coordinates exceed boundaries based on current SETREMAP mode.
+* Improve moveWindow to allow overlapping moves.
+* Various specialised bitmap image handling utilities
 
 ## Wiring Connections
 
