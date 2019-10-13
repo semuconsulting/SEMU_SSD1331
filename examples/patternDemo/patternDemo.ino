@@ -7,7 +7,7 @@
   using hardware optimisation.
 
  ****************************************************/
-#define DEBUG
+//#define DEBUG
 
 #include <SEMU_SSD1331.h>
 //#include <Adafruit_SSD1331.h>
@@ -50,6 +50,24 @@ void setup(void) {
 }
 
 void loop() {
+
+  // use setOrientation() to set portrait rather than landscape mode
+  // display.setOrientation(SSD1331_ROTATE_090);
+  
+  /*
+  // NB: Adafruit_GFX library setRotation() does not currently cater for hardware re-orientation
+  // via setOrientation() and may have other issues. If you want to use existing width() or height()
+  // functions, you'll need to compensate for portrait mode along the following lines:
+   
+  if (display.getOrientation() && SSD1331_PORTRAIT) {
+    h = display.width();
+    w = display.height();
+  }
+  else {
+    w = display.width();
+    h = display.height();
+  }
+  */
 
   totalDuration = millis();
 #if defined(DEBUG)
@@ -114,6 +132,8 @@ void loop() {
   Serial.print("Total duration of tests: ");
   Serial.println(millis() - totalDuration, DEC);
 #endif
+
+
 }
 
 /**************************************************************
@@ -122,11 +142,15 @@ void loop() {
 void rectangles(uint8_t rsize, uint16_t iterations) {
 
   uint16_t i, x, y , filled;
+  uint8_t w, h;
+  h = display.TFTHEIGHT; // this allows for hardware orientiation via SETREMAP
+  w = display.TFTWIDTH; // this allows for hardware orientiation via SETREMAP
 
   for (i = 0; i < iterations; i++) {
-    for (x = 0; x < 96; x += rsize) {
-      for (y = 0; y < 64; y += rsize) {
+    for (x = 0; x < w; x += rsize) {
+      for (y = 0; y < h; y += rsize) {
         filled = random(2);
+
         if (filled < 1) {
           display.drawRect (x, y, (x + rsize - 1) - x, (y + rsize - 1) - y, random(0xffff));
         }
@@ -146,9 +170,12 @@ void rectangles(uint8_t rsize, uint16_t iterations) {
 void randomlines(uint16_t iterations) {
 
   uint16_t i;
+  uint8_t w, h;
+  h = display.TFTHEIGHT; // this allows for hardware orientiation via SETREMAP
+  w = display.TFTWIDTH; // this allows for hardware orientiation via SETREMAP
 
   for (i = 0; i < iterations; i++) {
-    display.drawLine (random(95), random(63), random(95), random(63), random(0xffff));
+    display.drawLine (random(), random(h), random(w), random(h), random(0xffff));
   }
 }
 
@@ -159,37 +186,39 @@ void patterns() {
 
   uint8_t x, y , n;
   uint16_t col;
-  uint8_t xT = display.width() - 1;
-  uint8_t yT = display.height() - 1;
+  uint8_t w, h;
+
+  h = display.TFTHEIGHT-1;
+  w = display.TFTWIDTH-1;
 
   display.fillScreen(BLACK);
 
   col = random(0xffff);
-  for (x = 0; x < xT; x += 4) {
-    display.drawLine (x, 0, xT - x, yT, col);
+  for (x = 0; x < w; x += 4) {
+    display.drawLine (x, 0, w - x, h, col);
   }
   col = random(0xffff);
-  for (x = 0; x < yT; x += 4) {
-    display.drawLine (0, x, xT, yT - x, col);
+  for (x = 0; x < h; x += 4) {
+    display.drawLine (0, x, w, h - x, col);
   }
 
   delay(PAUSE);
   display.fillScreen(BLACK);
 
-  for (x = 0; x < yT; x += 4) {
-    display.drawLine (0, x, x * 1.5, yT, random(0xffff));
+  for (x = 0; x < h; x += 4) {
+    display.drawLine (0, x, x * (w / h), h, random(0xffff));
     //delay(10);
   }
-  for (x = 0; x < yT; x += 4) {
-    display.drawLine (x * 1.5, yT, xT, yT - x, random(0xffff));
+  for (x = 0; x < h; x += 4) {
+    display.drawLine (x * (w / h), h, w, h - x, random(0xffff));
     //delay(10);
   }
-  for (x = 0; x < yT; x += 4) {
-    display.drawLine (xT, yT - x, xT - x * 1.5, 0, random(0xffff));
+  for (x = 0; x < h; x += 4) {
+    display.drawLine (w, h - x, w - x * (w / h), 0, random(0xffff));
     //delay(10);
   }
-  for (x = 0; x < yT; x += 4) {
-    display.drawLine (xT - x * 1.5, 0, 0, x, random(0xffff));
+  for (x = 0; x < h; x += 4) {
+    display.drawLine (w - x * (w / h), 0, 0, x, random(0xffff));
     //delay(10);
   }
   delay(PAUSE);
@@ -197,11 +226,11 @@ void patterns() {
 
   for (n = 40; n > 2; n--) {
     col = random(0xffff);
-    for (x = 0; x < xT; x += n) {
-      display.drawFastVLine (x, 0, yT, col);
+    for (x = 0; x < w; x += n) {
+      display.drawFastVLine (x, 0, h, col);
     }
-    for (y = 0; y < yT; y += n) {
-      display.drawFastHLine (0, y, xT, col);
+    for (y = 0; y < h; y += n) {
+      display.drawFastHLine (0, y, w, col);
     }
     delay(100);
     display.fillScreen(BLACK);
@@ -214,10 +243,14 @@ void patterns() {
 void dial() {
 
   uint16_t i;
+  uint8_t w, h, x0, y0;
+  h = display.TFTHEIGHT;
+  w = display.TFTWIDTH;
+  
   uint8_t radius = 28;
-  uint8_t x0 = 48;
-  uint8_t y0 = 32;
   float rx, ry;
+  x0 = w / 2;
+  y0 = h / 2;
   for ( i = 0; i < (360 * 5); i++) {
 
     rx = (float)radius * cos((float)(i - 90) * 71 / 4068);
@@ -250,8 +283,8 @@ void oscilloscope(uint16_t iterations) {
 
   uint16_t x, y;
   float s1, s2;
-
-  uint8_t xT = display.width();
+  uint8_t xT;
+  xT = display.TFTWIDTH;
 
   for (y = 0; y < iterations; y += 5) {
     for (x = 0; x < xT - 1; x++) {
@@ -280,8 +313,9 @@ void zoomingSquares() {
   uint16_t i, n;
   uint16_t col;
   int16_t x0, y0, x1,  y1;
-  int16_t w = display.width() - 1;
-  int16_t h = display.height() - 1;
+  uint8_t w, h;
+  h = display.TFTHEIGHT;
+  w = display.TFTWIDTH;
 
   for (n = 0; n < 10; n++) {
 
