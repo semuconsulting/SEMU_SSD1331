@@ -33,6 +33,9 @@
 */
 void SEMU_SSD1331::setAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
 
+  // Adafruit_SSD1331 library has these hard-coded to default height and width,
+  // which does not cater for hardware reorientation via SETREMAP
+    
   uint8_t x1 = x;
   uint8_t y1 = y;
   if (x1 > _width-1) x1 = _width-1;
@@ -54,14 +57,18 @@ void SEMU_SSD1331::setAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
     y1 = t;
   }
 
-  sendCommand(0x15); // Column addr set
-  sendCommand(x1);
-  sendCommand(x2);
-  sendCommand(0x75); // Column addr set
-  sendCommand(y1);
-  sendCommand(y2);
-  
   startWrite();
+  writeCommand(SSD1331_CMD_SETCOLUMN); // Column addr set
+  writeCommand(x1);
+  writeCommand(x2);
+  writeCommand(SSD1331_CMD_SETROW); // Row addr set
+  writeCommand(y1);
+  writeCommand(y2);
+  endWrite();
+  
+  startWrite(); // don't remove - needed for GFX graphics functions, though not
+                // sure why they don't implement their own startWrite() first?
+  
 }
 
 
@@ -533,33 +540,49 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const tImage *img) {
 	const uint16_t * imageData = PROGMEM_read(&img->data);// copy pixels from flash (program) memory into SRAM (data) memory
 	uint16_t iWidth = pgm_read_word(&img->width);      // copy image width
 	uint16_t iHeight = pgm_read_word(&img->height);    // copy image height
-	//uint16_t iSize = pgm_read_word(&img->pixels);      // copy number of pixels in image
-	//uint8_t  iDepth = pgm_read_byte(&img->depth);      // copy number of bits per pixel (i.e. colour depth)
+	uint16_t iSize = pgm_read_word(&img->pixels);      // copy number of pixels in image
+	//uint8_t  iDepth = pgm_read_byte(&img->depth);    // copy number of bits per pixel (i.e. colour depth)
 	bool     isTrans = pgm_read_byte(&img->istrans);   // whether image is transparent or not
 	uint16_t iTcolor = pgm_read_word(&img->tcolor);    // color to be rendered as transparent, if above flag is set
-
-	//goTo(x0, y0);                                      // initialise cursor to top left
-	px = 0;
 	
-	for (y = y0; y < y0 + iHeight; y++) {
-		setCursor(x0, y);
-		for (x = x0; x < x0 + iWidth; x++) {
+  // if this is a non-transparent, full screen image, we can paint the entire display
+  // starting at pixel 0 using the hardware's cursor auto-increment
+  // takes around 24ms per image
+	if (x0 == 0 && y0 == 0 && iWidth == _width && iHeight == _height && !isTrans) {
+
+		for (px = 0; px < iSize; px++) {
 			color = pgm_read_word(&imageData[px]);
-			// if this pixel transparent colour, skip it
-			if ((isTrans) && (color == iTcolor)) {
-				skipping = true;
-			}
-			// otherwise, draw the pixel
-			else {
-				if (skipping) {
-					skipping = false;
-					setCursor(x, y);
-				}
-				pushColor(color);
-			}
-			px++;
+			pushColor(color);
 		}
+		
 	}
+	// otherwise we have to reposition the cursor programmatically, which is about
+	// 10-15% slower
+	else {
+
+	  px = 0;
+		
+		for (y = y0; y < y0 + iHeight; y++) {
+			setCursor(x0, y);
+			for (x = x0; x < x0 + iWidth; x++) {
+				color = pgm_read_word(&imageData[px]);
+				// if this pixel transparent colour, skip it
+				if ((isTrans) && (color == iTcolor)) {
+					skipping = true;
+				}
+				// otherwise, draw the pixel
+				else {
+					if (skipping) {
+						skipping = false;
+						setCursor(x, y);
+					}
+					pushColor(color);
+				}
+				px++;
+			}
+			
+		}
+  }
 
 }
 
@@ -577,35 +600,50 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const bwImage *img) {
 	uint8_t px, color;
 	bool skipping = false;
 	const uint8_t * imageData = PROGMEM_read(&img->data);// copy pixels from flash (program) memory into SRAM (data) memory
-	uint16_t iWidth = pgm_read_word(&img->width);      // copy image width
-	uint16_t iHeight = pgm_read_word(&img->height);    // copy image height
-	//uint16_t iSize = pgm_read_word(&img->pixels);      // copy number of pixels in image
+	uint16_t iWidth = pgm_read_word(&img->width);        // copy image width
+	uint16_t iHeight = pgm_read_word(&img->height);      // copy image height
+	uint16_t iSize = pgm_read_word(&img->pixels);        // copy number of pixels in image
 	//uint8_t  iDepth = pgm_read_byte(&img->depth);      // copy number of bits per pixel (i.e. colour depth)
-	bool     isTrans = pgm_read_byte(&img->istrans);   // whether image is transparent or not
-	uint8_t iTcolor = pgm_read_word(&img->tcolor);    // color to be rendered as transparent, if above flag is set
+	bool     isTrans = pgm_read_byte(&img->istrans);     // whether image is transparent or not
+	uint8_t iTcolor = pgm_read_word(&img->tcolor);       // color to be rendered as transparent, if above flag is set
 
-	//goTo(x0, y0);                                      // initialise cursor to top left
-	px = 0;
+  // if this is a non-transparent, full screen image, we can paint the entire display
+  // starting at pixel 0 using the hardware's cursor auto-increment
+	if (x0 == 0 && y0 == 0 && iWidth == _width && iHeight == _height && !isTrans) {
 	
-	for (y = y0; y < y0 + iHeight; y++) {
-		setCursor(x0, y);
-		for (x = x0; x < x0 + iWidth; x++) {
+		for (px = 0; px < iSize; px++) {
 			color = pgm_read_word(&imageData[px]);
-			// if this pixel transparent colour, skip it
-			if ((isTrans) && (color == iTcolor)) {
-				skipping = true;
-			}
-			// otherwise, draw the pixel
-			else {
-				if (skipping) {
-					skipping = false;
-					setCursor(x, y);
-				}
-				pushColor(color);
-			}
-			px++;
+			pushColor(color);
 		}
+		
 	}
+	// otherwise we have to reposition the cursor programmatically, which is about
+	// 10-15% slower
+	else {
+	
+		px = 0;
+	
+		for (y = y0; y < y0 + iHeight; y++) {
+			setCursor(x0, y);
+			for (x = x0; x < x0 + iWidth; x++) {
+				color = pgm_read_word(&imageData[px]);
+				// if this pixel transparent colour, skip it
+				if ((isTrans) && (color == iTcolor)) {
+					skipping = true;
+				}
+				// otherwise, draw the pixel
+				else {
+					if (skipping) {
+						skipping = false;
+						setCursor(x, y);
+					}
+					pushColor(color);
+				}
+				px++;
+			}
+		}
+
+  }
 
 }
 
