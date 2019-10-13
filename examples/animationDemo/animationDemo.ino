@@ -1,7 +1,8 @@
 /***************************************************
   SEMU_SSD1331 library animationDemo example
 
-  Illustration of how to animate bitmap images.
+  Illustration of how to stop-frame animate bitmap images.
+  Images courtesy of Eadweard Muybridge, father of stop-frame animation.
   
   The image header files used in this demo were created using
   Vladimir Riuson's lcd-image-convertor utility:
@@ -57,6 +58,8 @@ void setup(void) {
 void loop() {
 
   // show animation at (approximately) 20 frames per second
+  // each full-screen image takes about 24ms to render, so maximum practical
+  // frame rate is about 40 fps
   showAnimation(20);
 
 }
@@ -71,7 +74,7 @@ void showAnimation(uint8_t fps) {
     for (i = 0; i < 8; i++) {
 
       display.drawImage(0, 0, &animation[i]);
-      delay(1000/fps);
+      delay(1000/fps); // in real-world application, use timer rather than delay()
 
     }
   }

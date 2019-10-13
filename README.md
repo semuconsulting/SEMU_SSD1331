@@ -40,7 +40,7 @@ The following SSD1331 hardware functions are implemented:
 * clearWindow
 * copyWindow (copy section of display to another location)
 * moveWindow ('move' section of display to another location - currently non-overlapping moves only)
-* dimWindow (dim section of display accordinging to current grayscale setting)
+* dimWindow (dim section of display according to current grayscale setting)
 * display on/off/rotate/invert ('negative')
 * display scrolling (horizontal and/or vertical, all or selected rows)
 

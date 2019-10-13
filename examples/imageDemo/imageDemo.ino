@@ -48,6 +48,30 @@ void showtestcard() {
   display.drawImage(&testcard); 
   delay(PAUSE);
 
+  // copy section of image to another location
+  display.copyWindow(30,15,62,45,0,0);
+  delay(PAUSE);
+  display.copyWindow(30,15,62,45,0,33);
+  delay(PAUSE);
+  display.copyWindow(30,15,62,45,63,0);
+  delay(PAUSE);
+  display.copyWindow(30,15,62,45,63,33);
+  delay(PAUSE);
+
+  // 'move' section of image to another location
+  // doesn't currently support overlapping moves
+  display.drawImage(&testcard); 
+  delay(PAUSE);
+  // copy section of image to another location
+  display.moveWindow(30,15,62,45,0,0);
+  delay(PAUSE);
+  display.moveWindow(0,0,32,30,0,33);
+  delay(PAUSE);
+  display.moveWindow(0,32,32,30,62,0);
+  delay(PAUSE);
+  display.moveWindow(62,0,32,30,62,33);
+  delay(PAUSE);
+  
   // flip display left-right - still the same image,
   // but the display itself is flipped
   display.setOrientation(SSD1331_ROTATE_NORMALFLIP); 
@@ -88,7 +112,7 @@ void showfrank() {
   }
   for (i = 10; i > 0.2; i -= 0.5) {
     display.setGrayScale(i);
-    delay(100);
+    delay(50);
   }
   for (i = 0.2; i < 1.0; i += 0.1) {
     display.setGrayScale(i);
