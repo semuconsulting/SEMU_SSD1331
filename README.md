@@ -20,7 +20,7 @@ The tImage (16-bit RGB color) and bwImage (8-bit monochrome) templates in the lc
 
 ## Current Status
 
-The following bitmap display functions are implemented using various hardware and software optimisations:
+The following structured bitmap display functions are implemented using various hardware and software optimisations:
 * drawImage (from flash (PROGMEM) memory map. Utilises hardware pointer auto-increment to improve speed). Includes support for transparent images
 with specified transparency colour.
 * drawMaskedImage (draw 'masked' image with specified mask overlay (matte) and colour)
@@ -46,6 +46,7 @@ The following SSD1331 hardware functions are implemented:
 
 ## To Do
 
+* Fix bug in handling of transparent images in drawImage() to do with new SPI handling - drawMaskedImage() works fine.
 * Implement improved orientation-specific boundary checking. For now, display will normally just wrap-around if coordinates exceed boundaries based on current SETREMAP mode.
 * Improve moveWindow to allow overlapping moves.
 * Various specialised bitmap image handling utilities

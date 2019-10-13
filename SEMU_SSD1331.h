@@ -128,7 +128,7 @@ template<typename T> T PROGMEM_read(const T * sce) {
 	return temp;
 }
 
-// full colour image
+// full colour (16-bit) image
 typedef struct PROGMEM {
 	const uint16_t *data;
 	uint16_t width;
@@ -139,7 +139,7 @@ typedef struct PROGMEM {
 	uint16_t tcolor;    // transparency color
 } tImage;
 
-// monochrome image
+// monochrome (8-bit) image
 typedef struct PROGMEM {
 	const uint8_t *data;
 	uint16_t width;

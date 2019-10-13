@@ -54,17 +54,14 @@ void SEMU_SSD1331::setAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
     y1 = t;
   }
   
-  startWrite();
   writeCommand(SSD1331_CMD_SETCOLUMN); // Column addr set
   writeCommand(x1);
   writeCommand(x2);
   writeCommand(SSD1331_CMD_SETROW); // Row addr set
   writeCommand(y1);
   writeCommand(y2);
-  endWrite();
   
-  startWrite(); // don't remove - needed for GFX graphics functions, though not
-                // sure why they don't implement their own startWrite() first?
+  startWrite(); // why if already surrounded by SPI txn???
   
 }
 
@@ -517,31 +514,39 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const tImage *img) {
 	//uint8_t  iDepth = pgm_read_byte(&img->depth);    // copy number of bits per pixel (i.e. colour depth)
 	bool     isTrans = pgm_read_byte(&img->istrans);   // whether image is transparent or not
 	uint16_t iTcolor = pgm_read_word(&img->tcolor);    // color to be rendered as transparent, if above flag is set
-	
+
+	px = 0;
+	  
   // if this is a non-transparent, full screen image, we can paint the entire display
   // starting at pixel 0 using the hardware's cursor auto-increment
   // takes around 24ms per image
+  
 	if (x0 == 0 && y0 == 0 && iWidth == _width && iHeight == _height && !isTrans) {
 
+    startWrite();
 		for (px = 0; px < iSize; px++) {
 			color = pgm_read_word(&imageData[px]);
-			pushColor(color);
+			SPI_WRITE16(color);  //  pushColor now deprecated
 		}
+		endWrite();
 		
 	}
+	
 	// otherwise we have to reposition the cursor programmatically, which is about
 	// 10-15% slower
 	else {
 
-	  px = 0;
-		
+    startWrite();
 		for (y = y0; y < y0 + iHeight; y++) {
+
 			setCursor(x0, y);
 			for (x = x0; x < x0 + iWidth; x++) {
 				color = pgm_read_word(&imageData[px]);
 				// if this pixel transparent colour, skip it
 				if ((isTrans) && (color == iTcolor)) {
 					skipping = true;
+					//pushColor(0xffff);    // this worked pre-Adafruit_SPI but there's now a bug
+					//SPI_WRITE16(0xffff);  // in the handling of setCursor I still need to fix
 				}
 				// otherwise, draw the pixel
 				else {
@@ -549,12 +554,15 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const tImage *img) {
 						skipping = false;
 						setCursor(x, y);
 					}
-					pushColor(color);
+					//pushColor(color);
+					SPI_WRITE16(color); // pushColor now deprecated
 				}
 				px++;
 			}
-			
+
 		}
+		endWrite();
+
   }
 
 }
@@ -580,29 +588,34 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const bwImage *img) {
 	bool     isTrans = pgm_read_byte(&img->istrans);     // whether image is transparent or not
 	uint8_t iTcolor = pgm_read_word(&img->tcolor);       // color to be rendered as transparent, if above flag is set
 
+	px = 0;
+		
   // if this is a non-transparent, full screen image, we can paint the entire display
   // starting at pixel 0 using the hardware's cursor auto-increment
 	if (x0 == 0 && y0 == 0 && iWidth == _width && iHeight == _height && !isTrans) {
 	
+	  startWrite();
 		for (px = 0; px < iSize; px++) {
-			color = pgm_read_word(&imageData[px]);
-			pushColor(color);
+			color = pgm_read_byte(&imageData[px]);
+			SPI_WRITE16(color); //  pushColor now deprecated
 		}
+		endWrite();
 		
 	}
 	// otherwise we have to reposition the cursor programmatically, which is about
 	// 10-15% slower
 	else {
 	
-		px = 0;
-	
+	  startWrite();
 		for (y = y0; y < y0 + iHeight; y++) {
 			setCursor(x0, y);
 			for (x = x0; x < x0 + iWidth; x++) {
-				color = pgm_read_word(&imageData[px]);
+				color = pgm_read_byte(&imageData[px]);
 				// if this pixel transparent colour, skip it
 				if ((isTrans) && (color == iTcolor)) {
 					skipping = true;
+					//pushColor(0xffff);    // this worked pre-Adafruit_SPI but there's now a bug
+					//SPI_WRITE16(0xffff);  // in the handling of setCursor I still need to fix
 				}
 				// otherwise, draw the pixel
 				else {
@@ -610,11 +623,13 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const bwImage *img) {
 						skipping = false;
 						setCursor(x, y);
 					}
-					pushColor(color);
+					//pushColor(color);
+					SPI_WRITE16(color); //  pushColor now deprecated
 				}
 				px++;
 			}
 		}
+		endWrite();
 
   }
 
@@ -671,21 +686,26 @@ void SEMU_SSD1331::drawMaskedImage(uint8_t x0, uint8_t y0,
 	//goTo(x0, y0);                          		// initialise cursor to top left
 	px = 0;
 
-	for (y = y0; y < y0 + iHeight; y++) {
+  startWrite();
+	for (y = y0; y < y0 + iHeight; y++) { 
 		setCursor(x0, y);
 		for (x = x0; x < x0 + iWidth; x++) {
 			iColour = pgm_read_word(&imageData[px]);   // read in the image data
 			mColour = pgm_read_word(&maskData[px]);		// read in the mask data
 			if (mColour == iTcolor) {   // if the mask pixel is transparent, draw the image pixel	  
-				pushColor(iColour);
+				//pushColor(iColour);
+				SPI_WRITE16(iColour); // pushColor now deprecated
 			}
 			else {						// otherwise, draw the mask pixel
-				pushColor(mColour);
+				//pushColor(mColour);
+				SPI_WRITE16(mColour); // pushColor now deprecated
 			}
 			px++;
 		}
 
 	}
+	endWrite();
+
 }
 
 /**************************************************************************/
@@ -728,14 +748,15 @@ void SEMU_SSD1331::drawMaskedSegment(uint8_t x0, uint8_t y0,
 			iColour = pgm_read_word(&imageData[pxi]);   	// read in the image data
 			mColour = pgm_read_word(&maskData[pxm]);		// read in the mask data
 			if (mColour == iTcolor) {   					// if the mask pixel is transparent, draw the mask pixel	  
-				pushColor(mColour);
+				//pushColor(mColour);
+				SPI_WRITE16(mColour); // pushColor now deprecated
 			}
 			else {											// otherwise, draw the image pixel
-				pushColor(iColour);
+				//pushColor(iColour);
+				SPI_WRITE16(iColour); // pushColor now deprecated
 			}
 			pxi++;
-			pxm++;
-			
+			pxm++;	
 		}
 
 	}
