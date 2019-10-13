@@ -300,11 +300,6 @@ void SEMU_SSD1331::setGrayScale(float gamma) {
 void SEMU_SSD1331::clearWindow(uint8_t x0, uint8_t y0, uint8_t x1,
 	uint8_t y1) {
 
-	if (x0 > _width-1) x0 = _width-1;
-	if (y0 > _height-1) y0 = _height-1;
-	if (x1 > _width-1) x1 = _width-1;
-	if (y1 > _height-1) y1 = _height-1;
-  
 	startWrite();
 	writeCommand(SSD1331_CMD_CLEAR);
 	writeCommand(x0);
@@ -341,13 +336,6 @@ void SEMU_SSD1331::clearWindow() {
 /**************************************************************************/
 void SEMU_SSD1331::copyWindow(uint8_t x0, uint8_t y0, uint8_t x1,
 	uint8_t y1, uint8_t x2, uint8_t y2) {
-
-	if (x0 > _width-1) x0 = _width-1;
-	if (y0 > _height-1) y0 = _height-1;
-	if (x1 > _width-1) x1 = _width-1;
-	if (y1 > _height-1) y1 = _height-1;
-	if (x2 > _width-1) x2 = _width-1;
-	if (y2 > _height-1) y2 = _height-1;
   
 	startWrite();
 	writeCommand(SSD1331_CMD_COPY);
@@ -379,13 +367,6 @@ void SEMU_SSD1331::moveWindow(uint8_t x0, uint8_t y0, uint8_t x1,
 
 	// Crude hardware implementation which only supports
 	// non-overlapping moves
-
-	if (x0 > _width-1) x0 = _width-1;
-	if (y0 > _height-1) y0 = _height-1;
-	if (x1 > _width-1) x1 = _width-1;
-	if (y1 > _height-1) y1 = _height-1;
-	if (x2 > _width-1) x2 = _width-1;
-	if (y2 > _height-1) y2 = _height-1;
 	
 	startWrite();
 	writeCommand(SSD1331_CMD_COPY);
@@ -419,11 +400,6 @@ void SEMU_SSD1331::moveWindow(uint8_t x0, uint8_t y0, uint8_t x1,
 /**************************************************************************/
 void SEMU_SSD1331::dimWindow(uint8_t x0, uint8_t y0, uint8_t x1,
 	uint8_t y1) {
-
-	if (x0 > _width-1) x0 = _width-1;
-	if (y0 > _height-1) y0 = _height-1;
-	if (x1 > _width-1) x1 = _width-1;
-	if (y1 > _height-1) y1 = _height-1;
 	
 	startWrite();
 	writeCommand(SSD1331_CMD_DIM);
@@ -456,17 +432,17 @@ void SEMU_SSD1331::setScroll(uint8_t x_speed, uint8_t y_speed,
 	_scrollmode = 0;
 	
 	// check bounds 
-	if (x_speed > _width - 1) {
-		x_speed = _width - 1;
+	if (x_speed > TFTWIDTH - 1) {
+		x_speed = TFTWIDTH - 1;
 	}
-	if (y_speed > _height - 1) {
-		y_speed = _height - 1;
+	if (y_speed > TFTHEIGHT - 1) {
+		y_speed = TFTHEIGHT - 1;
 	}
-	if (y0 > _height) {
-		y0 = _height;
+	if (y0 > TFTHEIGHT) {
+		y0 = TFTHEIGHT;
 	}
-	if (rows + y0 > _height) {
-		rows = _height;
+	if (rows + y0 > TFTHEIGHT) {
+		rows = TFTHEIGHT;
 	}
 	if (interval > 3) {
 		interval = 3;
@@ -784,11 +760,6 @@ void SEMU_SSD1331::drawMaskedSegment(uint8_t x0, uint8_t y0,
 
 void SEMU_SSD1331::drawLine(int16_t x0, int16_t y0, int16_t x1,
 	int16_t y1, uint16_t color) {
-
-	if (x0 > _width-1) x0 = _width-1;
-	if (y0 > _height-1) y0 = _height-1;
-	if (x1 > _width-1) x1 = _width-1;
-	if (y1 > _height-1) y1 = _height-1;
 	
 	startWrite();
 	writeCommand(SSD1331_CMD_DRAWLINE);
@@ -820,11 +791,6 @@ void SEMU_SSD1331::drawLine(int16_t x0, int16_t y0, int16_t x1,
 
 void SEMU_SSD1331::drawRect(int16_t x0, int16_t y0, int16_t x1, int16_t y1, 
   uint16_t border_color, uint16_t fill_color, bool filled) {
-
-	if (x0 > _width-1) x0 = _width-1;
-	if (y0 > _height-1) y0 = _height-1;
-	if (x1 > _width-1) x1 = _width-1;
-	if (y1 > _height-1) y1 = _height-1;
 	
 	startWrite();
 	writeCommand(SSD1331_CMD_FILL);
