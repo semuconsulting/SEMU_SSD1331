@@ -33,18 +33,15 @@
 */
 void SEMU_SSD1331::setAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
 
-  // Adafruit_SSD1331 library has these hard-coded to default height and width,
-  // which does not cater for hardware reorientation via SETREMAP
-    
   uint8_t x1 = x;
   uint8_t y1 = y;
-  if (x1 > _width-1) x1 = _width-1;
-  if (y1 > _height-1) y1 = _height-1;
+  if (x1 > TFTWIDTH-1) x1 = TFTWIDTH-1;
+  if (y1 > TFTHEIGHT-1) y1 = TFTHEIGHT-1;
 
   uint8_t x2 = (x+w-1);
   uint8_t y2 = (y+h-1);
-  if (x2 > _width-1) x2 = _width-1;
-  if (y2 > _height-1) y2 = _height-1;
+  if (x2 > TFTWIDTH-1) x2 = TFTWIDTH-1;
+  if (y2 > TFTHEIGHT-1) y2 = TFTHEIGHT-1;
 
   if (x1 > x2) {
     uint8_t t = x2;
@@ -56,7 +53,7 @@ void SEMU_SSD1331::setAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
     y2 = y1;
     y1 = t;
   }
-
+  
   startWrite();
   writeCommand(SSD1331_CMD_SETCOLUMN); // Column addr set
   writeCommand(x1);
