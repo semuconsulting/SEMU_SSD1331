@@ -68,8 +68,6 @@ void showAnimation(uint8_t fps) {
 
   uint8_t i, n;
 
-  display.clearWindow();
-
   for (n = 0; n < 10; n++) {
     for (i = 0; i < 8; i++) {
 
