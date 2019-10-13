@@ -96,10 +96,10 @@
  A(6/7) - Colour depth (0 = 256, 1 = 65k format 1, 2 = 65k format 2)
  */
  
-#define SSD1331_PORTRAIT            0x01    // 0b00000001
-#define SSD1331_FLIP_X              0x02    // 0b00000010
+#define SSD1331_PORTRAIT            0x01  // 0b00000001
+#define SSD1331_FLIP_X              0x02  // 0b00000010
 #define SSD1331_BGR                 0x04	// 0b00000100
-#define SSD1331_FLIP_LR             0x08    // 0b00001000
+#define SSD1331_FLIP_LR             0x08  // 0b00001000
 #define SSD1331_FLIP_Y              0x10	// 0b00010000
 #define SSD1331_SPLIT_OE            0x20	// 0b00100000
 #define SSD1331_COLOR_65K1          0x40	// 0b01000000
