@@ -61,13 +61,35 @@ void SEMU_SSD1331::setAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
   writeCommand(y1);
   writeCommand(y2);
   
-  startWrite(); // why if already surrounded by SPI txn???
+  startWrite(); // do not remove - needed by GFX graphics functions
   
 }
 
 /**************************************************************************/
 /*!
-    @brief   Dedicated function to set current graphics cursor for bitmap operations
+    @brief   Dedicated function to set addressable graphics window
+    This must be part of an SPI transaction i.e. preceded by a startWrite() and
+    followed by an endWrite()
+    @param   x0 x first x coordinate
+    @param   y0 y first y coordinate
+	@param   x1 x second x coordinate
+    @param   y1 y second y coordinate
+*/
+/**************************************************************************/
+void SEMU_SSD1331::setWindow(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1) {
+  
+  writeCommand(SSD1331_CMD_SETCOLUMN); // Column addr set
+  writeCommand(x0);
+  writeCommand(x1);
+  writeCommand(SSD1331_CMD_SETROW); // Row addr set
+  writeCommand(y0);
+  writeCommand(y1);
+  
+}
+
+/**************************************************************************/
+/*!
+    @brief   Dedicated function to set graphics cursor
     This must be part of an SPI transaction i.e. preceded by a startWrite() and
     followed by an endWrite()
     @param   x x coordinate
@@ -76,12 +98,7 @@ void SEMU_SSD1331::setAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
 /**************************************************************************/
 void SEMU_SSD1331::goTo(uint8_t x, uint8_t y) {
   
-  writeCommand(SSD1331_CMD_SETCOLUMN); // Column addr set
-  writeCommand(x);
-  writeCommand(TFTWIDTH-1);
-  writeCommand(SSD1331_CMD_SETROW); // Row addr set
-  writeCommand(y);
-  writeCommand(TFTHEIGHT-1);
+  setWindow(x, y, TFTWIDTH-1, TFTHEIGHT-1);
   
 }
 
@@ -263,6 +280,7 @@ void SEMU_SSD1331::setDisplayMode(uint8_t mode) {
 	case SSD1331_CMD_DISPLAYON:
 		sendCommand(mode);
 		delayMicroseconds(SSD1331_DELAYS_HWFILL);
+		_mode = mode;
 		break;
 	}
 }
@@ -538,8 +556,7 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const tImage *img) {
 	  
   // if this is a non-transparent, full screen image, we can paint the entire display
   // starting at pixel 0 using the hardware's cursor auto-increment
-  // takes around 24ms per image
-  
+  // takes around 24ms per image  
 	if (x0 == 0 && y0 == 0 && iWidth == _width && iHeight == _height && !isTrans) {
 
     startWrite();
@@ -583,6 +600,110 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const tImage *img) {
 
   }
 
+}
+
+/**************************************************************************/
+/*!
+    @brief  Paints a full colour image from flash memory (PROGMEM),
+	    taking into account display orientation
+	    NB: in portrait orientation, image 'width' and 'height' are swapped, 
+			but 'x' is still column and 'y' is still row in the display RAM
+    @param    x0    x (horizontal) starting display coordinate
+    @param    y0    y (vertical) starting display coordinate
+    @param    *img  pointer to PROGMEM image bitmap
+*/
+/**************************************************************************/
+void SEMU_SSD1331::XdrawImage(uint8_t x0, uint8_t y0, const tImage *img) {
+
+	uint16_t x, y, t, px, color;
+	bool sk;
+	const uint16_t * imageData = PROGMEM_read(&img->data);// copy pixels from flash (program) memory into SRAM (data) memory
+	uint16_t iWidth = pgm_read_word(&img->width);      // copy image width
+	uint16_t iHeight = pgm_read_word(&img->height);    // copy image height
+	uint16_t iSize = pgm_read_word(&img->pixels);      // copy number of pixels in image
+	//uint8_t  iDepth = pgm_read_byte(&img->depth);    // copy number of bits per pixel (i.e. colour depth)
+	bool     isTrans = pgm_read_byte(&img->istrans);   // whether image is transparent or not
+	uint16_t iTcolor = pgm_read_word(&img->tcolor);    // color to be rendered as transparent, if above flag is set
+
+	startWrite();
+	
+	// set initial address pointer and window
+	if (_orientation & SSD1331_PORTRAIT) {
+		setWindow(x0, y0, x0+iHeight-1, y0+iWidth-1); 
+	}
+	else {
+		setWindow(x0, y0, x0+iWidth-1, y0+iHeight-1);
+	}
+		
+	if (!isTrans) {
+	// if image is not transparent, no need to faff around with address pointers
+	// set address window to image dimensions, then just blit
+	// pixels in sequence allowing the hardware to auto-increment
+	// the address pointer after each pixel write
+
+		for (px = 0; px < iSize; px++) {
+			color = pgm_read_word(&imageData[px]);
+			SPI_WRITE16(color);
+		}
+
+	}
+	else {
+	// if image is transparent, process as above but skip transparent pixels 
+	// and reset address window and pointer accordingly,
+	// taking into account portrait or landscape orientations
+		
+		px = 0;
+		sk = false;
+		
+		// in portrait orientation, address pointer auto-increments y over x
+		if (_orientation & SSD1331_PORTRAIT) {
+			for (x = x0; x < x0+iHeight; x++) {
+				if (sk) {
+					setWindow(x, y0, x0+iHeight-1, y0+iWidth-1); 	// reset pointer if we
+																												// skipped any pixels
+					sk = false;
+				}
+				for (y = y0; y < y0+iWidth; y++) {
+					color = pgm_read_word(&imageData[px]);
+					if (color == iTcolor) { // if it's a transparent pixel
+						sk = true;						// skip it, but remember to reset pointer
+																	// at start of new scan column
+					}
+					else {
+						setWindow(x, y, x0+iHeight-1, y0+iWidth-1); // reset pointer
+						SPI_WRITE16(color);
+					}
+					px++;				
+				}
+			}	
+		}
+		// in landscape orientation, address pointer auto-increments x over y
+		else {
+			for (y = y0; y < y0+iHeight; y++) {			
+				if (sk) {
+					setWindow(x0, y, x0+iHeight-1, y0+iWidth-1); 	// reset pointer if we
+																												// skipped any pixels
+					sk = false;
+				}
+				for (x = x0; x < x0+iWidth; x++) {
+					color = pgm_read_word(&imageData[px]);
+					if (color == iTcolor) { // if it's a transparent pixel
+						sk = true;						// skip it, but remember to reset pointer
+																	// at start of new scan row
+					}
+					else {
+						setWindow(x, y, x0+iHeight-1, y0+iWidth-1); // reset pointer
+						SPI_WRITE16(color);
+					}
+					px++;
+				}
+			}
+		}
+			
+	}
+	
+	endWrite();
+			
 }
 
 /**************************************************************************/
@@ -712,11 +833,9 @@ void SEMU_SSD1331::drawMaskedImage(uint8_t x0, uint8_t y0,
 			iColour = pgm_read_word(&imageData[px]);   // read in the image data
 			mColour = pgm_read_word(&maskData[px]);		// read in the mask data
 			if (mColour == iTcolor) {   // if the mask pixel is transparent, draw the image pixel	  
-				//pushColor(iColour);
 				SPI_WRITE16(iColour); // pushColor now deprecated
 			}
 			else {						// otherwise, draw the mask pixel
-				//pushColor(mColour);
 				SPI_WRITE16(mColour); // pushColor now deprecated
 			}
 			px++;
@@ -767,13 +886,11 @@ void SEMU_SSD1331::drawMaskedSegment(uint8_t x0, uint8_t y0,
 		
 		for (x = 0; x < TFTWIDTH; x++) {
 			iColour = pgm_read_word(&imageData[pxi]);   	// read in the image data
-			mColour = pgm_read_word(&maskData[pxm]);		// read in the mask data
+			mColour = pgm_read_word(&maskData[pxm]);		 // read in the mask data
 			if (mColour == iTcolor) {   					// if the mask pixel is transparent, draw the mask pixel	  
-				//pushColor(mColour);
 				SPI_WRITE16(mColour); // pushColor now deprecated
 			}
 			else {											// otherwise, draw the image pixel
-				//pushColor(iColour);
 				SPI_WRITE16(iColour); // pushColor now deprecated
 			}
 			pxi++;
@@ -948,9 +1065,18 @@ uint8_t SEMU_SSD1331::getOrientation(void){
 
 /**************************************************************************/
 /*!
+    @brief  Returns display hardware mode
+*/
+/**************************************************************************/
+uint8_t SEMU_SSD1331::getMode(void){
+	return _mode;
+}
+
+/**************************************************************************/
+/*!
     @brief  Check that coordinates are within physical display boundaries
 	@param  x0 first x coordinate
-	@param  y0 first 7 coordinate
+	@param  y0 first y coordinate
 	@param  x1 second x coordinate (optional, defaults to 0)
 	@param  y1 second y coordinate (optional, defaults to 0)
 	@param  x2 third x coordinate (optional, defaults to 0)
@@ -961,8 +1087,42 @@ uint8_t SEMU_SSD1331::getOrientation(void){
 bool SEMU_SSD1331::inBounds(int16_t x0, int16_t y0, int16_t x1,
 	int16_t y1, int16_t x2, int16_t y2) {
 
+  // probably needs work to cater for hardware reorientation
+  
 	return ((y0 >= _height) || (y1 >= _height) || (y2 >= _height)
 		|| (x0 >= _width) || (x1 >= _width) || (x2 >= _width));
+
+}
+
+/**************************************************************************/
+/*!
+    @brief  Returns Area struct containing 'fixed' coordinates that are
+      geometrically consistent and within the physical display boundaries,
+      based on current orientation
+	  @param  x0 first x coordinate
+	  @param  y0 first y coordinate
+	  @param  x1 second x coordinate
+	  @param  y1 second y coordinate
+
+*/
+/**************************************************************************/
+Area SEMU_SSD1331::fixBounds(int16_t x0, int16_t y0, int16_t x1,
+	int16_t y1) {
+
+  // WORK IN PROGRESS - STILL DECIDING HOW TO CATER FOR HARDWARE REORIENTATION
+  if (_orientation && SSD1331_PORTRAIT) {
+  // do a portrait thing
+  }
+  else {
+  // do a landscape thing
+  }
+  
+  Area a;
+  a.x0 = y0;
+  a.x1 = x1;
+  a.y0 = y0;
+  a.y1 = y1;
+	return a;
 
 }
 
