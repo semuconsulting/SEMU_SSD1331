@@ -65,6 +65,25 @@ void SEMU_SSD1331::setAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
   
 }
 
+/**************************************************************************/
+/*!
+    @brief   Dedicated function to set current graphics cursor for bitmap operations
+    This must be part of an SPI transaction i.e. preceded by a startWrite() and
+    followed by an endWrite()
+    @param   x x coordinate
+    @param   y y coordinate
+*/
+/**************************************************************************/
+void SEMU_SSD1331::goTo(uint8_t x, uint8_t y) {
+  
+  writeCommand(SSD1331_CMD_SETCOLUMN); // Column addr set
+  writeCommand(x);
+  writeCommand(TFTWIDTH-1);
+  writeCommand(SSD1331_CMD_SETROW); // Row addr set
+  writeCommand(y);
+  writeCommand(TFTHEIGHT-1);
+  
+}
 
 /**************************************************************************/
 /*!
@@ -524,6 +543,7 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const tImage *img) {
 	if (x0 == 0 && y0 == 0 && iWidth == _width && iHeight == _height && !isTrans) {
 
     startWrite();
+    goTo(x0,y0);
 		for (px = 0; px < iSize; px++) {
 			color = pgm_read_word(&imageData[px]);
 			SPI_WRITE16(color);  //  pushColor now deprecated
@@ -537,22 +557,20 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const tImage *img) {
 	else {
 
     startWrite();
+    goTo(x0,y0);
 		for (y = y0; y < y0 + iHeight; y++) {
-
-			setCursor(x0, y);
+			goTo(x0,y);
 			for (x = x0; x < x0 + iWidth; x++) {
 				color = pgm_read_word(&imageData[px]);
 				// if this pixel transparent colour, skip it
 				if ((isTrans) && (color == iTcolor)) {
 					skipping = true;
-					//pushColor(0xffff);    // this worked pre-Adafruit_SPI but there's now a bug
-					//SPI_WRITE16(0xffff);  // in the handling of setCursor I still need to fix
 				}
 				// otherwise, draw the pixel
 				else {
 					if (skipping) {
 						skipping = false;
-						setCursor(x, y);
+						goTo(x,y);
 					}
 					//pushColor(color);
 					SPI_WRITE16(color); // pushColor now deprecated
@@ -595,6 +613,7 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const bwImage *img) {
 	if (x0 == 0 && y0 == 0 && iWidth == _width && iHeight == _height && !isTrans) {
 	
 	  startWrite();
+	  goTo(x0,y0);
 		for (px = 0; px < iSize; px++) {
 			color = pgm_read_byte(&imageData[px]);
 			SPI_WRITE16(color); //  pushColor now deprecated
@@ -607,21 +626,20 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const bwImage *img) {
 	else {
 	
 	  startWrite();
+	  goTo(x0,y0);
 		for (y = y0; y < y0 + iHeight; y++) {
-			setCursor(x0, y);
+			goTo(x0,y);
 			for (x = x0; x < x0 + iWidth; x++) {
 				color = pgm_read_byte(&imageData[px]);
 				// if this pixel transparent colour, skip it
 				if ((isTrans) && (color == iTcolor)) {
 					skipping = true;
-					//pushColor(0xffff);    // this worked pre-Adafruit_SPI but there's now a bug
-					//SPI_WRITE16(0xffff);  // in the handling of setCursor I still need to fix
 				}
 				// otherwise, draw the pixel
 				else {
 					if (skipping) {
 						skipping = false;
-						setCursor(x, y);
+						goTo(x,y);
 					}
 					//pushColor(color);
 					SPI_WRITE16(color); //  pushColor now deprecated
@@ -683,12 +701,13 @@ void SEMU_SSD1331::drawMaskedImage(uint8_t x0, uint8_t y0,
 	//uint8_t iDepth = pgm_read_byte(&img->depth);            // copy number of bits per pixel (i.e. colour depth)
 	uint16_t iTcolor = pgm_read_word(&mask->tcolor);        // color to be rendered as transparent, if above flag is set
 
-	//goTo(x0, y0);                          		// initialise cursor to top left
 	px = 0;
 
   startWrite();
+  goTo(x0, y0);                          		// initialise cursor to top left
+  
 	for (y = y0; y < y0 + iHeight; y++) { 
-		setCursor(x0, y);
+		goTo(x0,y);
 		for (x = x0; x < x0 + iWidth; x++) {
 			iColour = pgm_read_word(&imageData[px]);   // read in the image data
 			mColour = pgm_read_word(&maskData[px]);		// read in the mask data
@@ -737,12 +756,14 @@ void SEMU_SSD1331::drawMaskedSegment(uint8_t x0, uint8_t y0,
 	uint16_t iTcolor = pgm_read_word(&mask->tcolor);         // color to be rendered as transparent, if above flag is set
 
 	startWrite();
+	goTo(x0,y0);
+	
 	for (y = 0; y < TFTHEIGHT; y++) {
 		
 		pxi = (iWidth * (y + y0 - 1)) + x0 - 1; 			// set image pixel to leftmost pixel of segment
 		pxm = mWidth * y; 									// set mask pixel to leftmost pixel of segment
 		
-		setCursor(0, y);
+		goTo(0,y);
 		
 		for (x = 0; x < TFTWIDTH; x++) {
 			iColour = pgm_read_word(&imageData[pxi]);   	// read in the image data

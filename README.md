@@ -43,10 +43,10 @@ The following SSD1331 hardware functions are implemented:
 * dimWindow (dim section of display according to current grayscale setting)
 * display on/off/rotate/invert ('negative')
 * display scrolling (horizontal and/or vertical, all or selected rows)
+* goTo - sets graphics cursor for transactional bitmap operations
 
 ## To Do
 
-* Fix bug in handling of transparent images in drawImage() to do with new SPI handling - drawMaskedImage() works fine.
 * Implement improved orientation-specific boundary checking. For now, display will normally just wrap-around if coordinates exceed boundaries based on current SETREMAP mode.
 * Improve moveWindow to allow overlapping moves.
 * Various specialised bitmap image handling utilities

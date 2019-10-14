@@ -169,7 +169,8 @@ class SEMU_SSD1331 : public Adafruit_SPITFT {
   void begin(uint32_t begin=8000000);
 
   void setAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
-
+  
+  void goTo(uint8_t x, uint8_t y);
   void enableDisplay(boolean enable);
   void setDisplayMode(uint8_t mode);
   void setOrientation(uint8_t orientation);
@@ -208,12 +209,14 @@ class SEMU_SSD1331 : public Adafruit_SPITFT {
   void drawRect(int16_t x0, int16_t y0, int16_t x1, int16_t y1, 
     uint16_t border_color, uint16_t fill_color, bool filled);
   void drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
-  
+
+     
   static const int16_t TFTWIDTH = 96;    ///< The width of the display
   static const int16_t TFTHEIGHT = 64;   ///< The height of the display
  
   private:
  
+
    volatile uint16_t _backcolor = 0x0000;
    volatile uint8_t _scrollmode = SSD1331_SCROLL_OFF;
    volatile uint8_t _orientation = SSD1331_ROTATE_NORMAL;
