@@ -59,7 +59,7 @@ void loop() {
   // via setOrientation() and may have other issues. If you want to use existing width() or height()
   // functions, you'll need to compensate for portrait mode along the following lines:
    
-  if (display.getOrientation() && SSD1331_PORTRAIT) {
+  if (display.getOrientation() & SSD1331_PORTRAIT) {
     h = display.width();
     w = display.height();
   }
