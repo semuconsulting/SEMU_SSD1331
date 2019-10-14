@@ -1,8 +1,8 @@
 /***************************************************
   SEMU_SSD1331 library matteDemo example
 
-  Illustrates how to use the drawImage() method to display transparents images
-  and matte ('green screen') fx.
+  Illustrates how to use the drawImage() and drawMaskedImage methods to 
+  display transparents images and matte ('green screen') fx.
   
   The image header files used in this demo were created using
   Vladimir Riuson's lcd-image-convertor utility:
@@ -36,7 +36,9 @@ void setup(void) {
 
 void loop() {
 
-  // display the astronaut image without transparency
+  display.clearWindow();
+
+  // display the foreground image without transparency
   // image transparency is defined in the tImage struct as a boolean.
   // (see the foot of the astronaut.h file)
   display.drawImage(&astronaut);
@@ -45,9 +47,17 @@ void loop() {
   // display background image
   display.drawImage(&background);
   delay(PAUSE);
-  
-  // now overlay astronaut image but this time with the
+
+  // now overlay foreground image but this time with the
   // transparency flag in this image set to 'true'
+  // (see the foot of the astronautmatte.h file)
+  display.drawImage(&astronautmatte);
+  delay(PAUSE);
+
+  display.clearWindow();
+  delay(PAUSE/2);
+    
+  // the drawMaskedImmage() method does this as a single operation
   display.drawMaskedImage(0,0, &background, &astronautmatte);
   delay(PAUSE);
 
