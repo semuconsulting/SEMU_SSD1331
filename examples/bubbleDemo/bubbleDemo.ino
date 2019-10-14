@@ -4,6 +4,8 @@
 	This example was adapted from ugfx http://ugfx.org
 	It's a great example of many 2d objects in a 3d space (matrix transformations)
 
+  Not sure where this example originated but I got it
+  from S.U.M.O.T.O.Y - Max MC Costa
  ****************************************************/
 
 //#define DEBUG
