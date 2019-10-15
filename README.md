@@ -64,15 +64,15 @@ Pin on OLED board       | Pin on Arduino | Purpose
 ----------------------- | -------------- | ------------------------------------------------------ 
 GND or G                | GND            | Ground
 VCC or \+               | +5V            | Power **NB** some boards may run off 3.3V - check datasheet
-SCL or CK               | Pin 13         | SPI SCLK Clock (hardware) *1*
-SDA or SI               | Pin 11         | SPI MOSI Master Out, Slave In (hardware) *1*
+SCL or CLK or CK        | Pin 13         | SPI SCLK Clock (hardware) *1*
+SDA or SI or DIN        | Pin 11         | SPI MOSI Master Out, Slave In (hardware) *1*
 SO                      | Pin 12         | SPI MISO Master In, Slave Out for SD Card reader, if present (hardware) *1*
 RES or R                | Digital pin 9  | SPI Reset 
-DC or RS                | Digital pin 8  | SPI SDIO Serial Data
+DC or D/C or RS         | Digital pin 8  | SPI SDIO Serial Data
 CS or OC                | Digital pin 10 | SPI Chip Select pin for first OLED
 SC                      | Digital pin 7  | SPI Chip Select pin for SD Card reader, if present
 CD                      | N/C            | Used to detect if SD card is inserted, if present
-
+ 
 * *1* Check microcontroller datasheet for details of which hardware SPI pins to use.
 
 **If you're using two OLED displays (e.g. to simulate a pair of eyes), the pins on the second board should be configured as above WITH THE EXCEPTION OF:**
@@ -92,13 +92,13 @@ CS (OC) on 2nd board    | Digital pin 6  | SPI Chip Select for second OLED
 
 MCU                 | Tested Works | Doesn't Work | Not Tested  | Notes
 ------------------- | :----------: | :----------: | :---------: | --------------------
-Arduino UNO         |      X       |              |             | Very limited memory
-Arduino Micro       |      X       |              |             | Very limited memory
+Arduino UNO         |      X       |              |             | Very limited memory, sketches with >1 bitmap won't load
+Arduino Micro       |      X       |              |             | Very limited memory, sketches with >1 bitmap won't load
 Arduino Zero M0     |      X       |              |             | 
 Arduino DUE         |      X       |              |             | 
 Adafruit Metro M4   |              |       	      |     X       |
 Teensy 3.2 @ 72MHz  |      X       |              |             | 
 Teensy 3.6 @ 180MHz |      X       |              |             |
-Teensy 4.0 @ 600MHz |              |              |     X       |
+Teensy 4.0 @ 600MHz |      X       |              |             | Use latest Teensyduino >=1.48
 
 <!-- END COMPATIBILITY TABLE -->
