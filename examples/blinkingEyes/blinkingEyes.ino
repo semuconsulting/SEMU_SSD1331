@@ -4,17 +4,17 @@
   
   Illustrates use of SEMU_SSD1331 drawMaskedSegment() function, which displays a transparent mask 
   image over a moveable 'segment' of a larger underlying background image. Very fast frame rates are 
-  supported (up to around 40 fps). In this demo, the masks represents eyelids and the underlying 
+  supported (up to around 40 fps). In this demo, the masks represent eyelids and the underlying 
   image represents an eyeball, thus simulating a pair of moving, blinking eyes.
 
   This is a more simplistic, 'cartoony' approach than the impressive 'Uncanny Eyes' project for 
   SSD1351 OLEDs, but the drawMaskedSegment() function is readily adaptable to other applications.
 
-  NB: This demo Requires about 150kB of program storage space, so WON'T run on a low-end Arduino like a UNO.
-  NB: Only works properly in landscape orientation
+  NB: This demo requires about 150kB of program storage space, so WON'T run on a low-end Arduino like a UNO.
+  NB: Only works properly in landscape orientation at the moment.
 
-  Originally done for an 'animatronix' dragon project in which the motion of a dragon's eyes could
-  be controlled via a wireless gamepad controller or thumb potentiometer), but also switched to an
+  Originally done for an 'animatronix' dragon project in which the motion of a dragon's 'eyes' could
+  be controlled via a wireless gamepad controller or thumb potentiometer, but also switched to an
   autonomous 'auto' demonstration mode. In this example all the manual remote control stuff has been stripped to 
   leave only the OLED 'auto' functionality. The original target was a Teensy 3.2 - MCUs with more program memory 
   available (e.g. Teensy 3.6 or 4.0) could accommodate more sophisticated animations.
@@ -28,22 +28,9 @@
   Suitable presets and templates for use with this utility can be found here:
   https://github.com/semuconsulting/SEMU_SSD1331/tree/master/lcd_image_convert_template
 
-  WIRING CONNECTIONS:
-
-  SSD1331 OLEDs:
-
   NB: Multiple OLED boards should share the same SPI MISO, SCLK, RESET and DC lines but each board must have a separate SPI CS (OC) line.
 
-  GND on both OLED boards (brown wires)     --> GND on Arduino
-  VCC on both OLED boards (red wires)       --> 5V on Arduino
-  SCL or CK on both OLED boards (orange wires)    --> Digital pin 13 (SPI hardware SCLK) on Arduino
-  SDA or SI or DIN on both OLED boards (yellow wires)    --> Digital pin 11 (SPI MOSI) on Arduino - this is the chip select pin for the OLED itself
-  RES or R on both OLED boards (green wires)     --> Digital pin 10 (SPI RESET) on Arduino
-  DC or D/C on both OLED boards (blue wires)       --> Digital pin 9 (SPI Data Channel) on Arduino
-  CS or OC on left OLED board (purple wire)       --> Digital pin 8 (SPI Chip Select) on Arduino
-  CS or OC on right OLED board (purple/grey wire) --> Digital pin 6 (SPI Chip Select) on Arduino
-
-  NB: SPI wiring to displays should be as short as possible to avoid glitces - ideally no more than 5cm.
+  NB: SPI wiring to displays should be as short as possible to avoid glitches - ideally no more than 5cm.
 ******************************************************************************************************************************/
 
 //#define DEBUG
@@ -68,8 +55,8 @@
 #if defined(DUALDISPLAYS)
 // reset pin on second OLED must have a fictional assignment (e.g. 99)
 // even though it's connected to the same physical pin as the first OLED
-#define cs2   6   // marked CS or OC on OLED board
-#define rst2  99  // marked RES or R on OLED board
+#define cs2   6   // marked CS or OC on second OLED board
+#define rst2  99  // marked RES or R on second OLED board
 #endif
 
 #define LEFT 0
