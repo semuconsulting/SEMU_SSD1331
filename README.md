@@ -68,7 +68,7 @@ SCL or CLK or CK        | Pin 13         | SPI SCLK Clock (hardware) *1*
 SDA or SI or DIN        | Pin 11         | SPI MOSI Master Out, Slave In (hardware) *1*
 SO                      | Pin 12         | SPI MISO Master In, Slave Out for SD Card reader, if present (hardware) *1*
 RES or R                | Digital pin 9  | SPI Reset 
-DC or D/C or RS         | Digital pin 8  | SPI SDIO Serial Data
+DC or D/C               | Digital pin 8  | SPI SDIO Serial Data (**NB** I have seen a board with this pin marked as 'RS' - be warned)
 CS or OC                | Digital pin 10 | SPI Chip Select pin for first OLED
 SC                      | Digital pin 7  | SPI Chip Select pin for SD Card reader, if present
 CD                      | N/C            | Used to detect if SD card is inserted, if present
