@@ -58,8 +58,8 @@ void setup(void) {
 void loop() {
 
   // show animation at (approximately) 20 frames per second
-  // each full-screen image takes about 24ms to render, so maximum practical
-  // frame rate is about 40 fps
+  // each full-screen image takes about 17ms to render, so maximum practical
+  // frame rate is about 58 fps
   showAnimation(20);
 
 }

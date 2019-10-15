@@ -22,8 +22,8 @@ The tImage (16-bit RGB color) and bwImage (8-bit monochrome) templates in the lc
 
 The following structured bitmap display functions are implemented using various hardware and software optimisations:
 * drawImage (from flash (PROGMEM) memory map. Utilises hardware pointer auto-increment to improve speed). Includes support for transparent images
-with specified transparency colour.
-* drawMaskedImage (draw 'masked' image with specified mask overlay (matte) and colour)
+with specified transparency colour. Draws full screen (96x64) image in about 17ms. See animation example.
+* drawMaskedImage (draw 'masked' image with specified mask overlay (matte) and colour). See matte example.
 
 The following hardware-optimised commands override Adafruit_GFX virtual methods and are typically 7-8 times faster than the generic software methods:
 * drawLine (draw line between specified coordinates)
