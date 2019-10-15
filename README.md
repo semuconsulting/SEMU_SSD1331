@@ -11,9 +11,9 @@ Based on the original [Adafruit SSD1331 library](https://github.com/adafruit/Ada
 It inherits the Adafruit_SPITFT class and is intended to represent a more fully-featured replacement for the Adafruit_SSD1331_OLED library.
 
 Originally motivated by a desire to: 
-1. Implement the full range of SSD1331 hardware configuration and graphics commands
-2. Add a flexible, hardware-optimised drawImage function from flash memory maps.
-3. Add functions to facilitate multi-screen animation.
+1. Implement the full range of SSD1331 hardware configuration and graphics commands.
+2. Add a flexible, hardware-optimised drawImage function for bitmaps and masks.
+3. Add functions to facilitate bitmap animation and 'green screen' effects.
 
 The image header files used in the examples were created using [Vladimir Riuson's excellent lcd-image-convertor utility](https://github.com/riuson/lcd-image-converter). 
 The tImage (16-bit RGB color) and bwImage (8-bit monochrome) templates in the lcd-image-convert folder can be used to create the appropriate PROGMEM structures from bitmaps.
@@ -21,35 +21,43 @@ The tImage (16-bit RGB color) and bwImage (8-bit monochrome) templates in the lc
 ## Current Status
 
 The following structured bitmap display functions are implemented using various hardware and software optimisations:
-* drawImage (from flash (PROGMEM) memory map. Utilises hardware pointer auto-increment to improve speed). Includes support for transparent images
-with specified transparency colour. Draws full screen (96x64) image in about 17ms. See animation example.
+* drawImage (from flash (PROGMEM) memory). Utilises hardware pointer auto-increment to improve speed - draws full screen (96x64) image in about 17ms; 
+roughly 20% faster than generic methods. 
+Includes support for transparent images with specified transparency colour.  See animation example.
 * drawMaskedImage (draw 'masked' image with specified mask overlay (matte) and colour). See matte example.
 
-The following hardware-optimised commands override Adafruit_GFX virtual methods and are typically 7-8 times faster than the generic software methods:
-* drawLine (draw line between specified coordinates)
-* drawRect (draw rectangular box of specified start point, width and height)
-* fillRect (draw filled rectangle of specified start point, width and height)
-* drawFastVLine (draw vertical line of specified height)
-* drawFastHLine (draw horizontal line of specified width)
-* fillScreen (fill screen with specified color)
+The following functions must be used within an SPI transaction (i.e. preceded by startWrite() and followed by endWrite();
+* setWindow - sets graphics RAM addressable window (similar to existing setAddrWindow() but without the embedded startwrite()).
+* goTo - sets graphics RAM address pointer ('cursor').
 
-The following SSD1331 hardware functions are implemented:
-* setOrientation (8 permutations available - normal, 90, 180 and 270 rotation, each of which can also be mirrored)
-* setGrayScale (by passing decimal gamma value)
-* resetGrayScale (linear gray scale i.e. gamma = 1.0)
-* clearWindow
-* copyWindow (copy section of display to another location)
-* moveWindow ('move' section of display to another location - currently non-overlapping moves only)
+The following hardware-optimised functions override Adafruit_GFX methods and are typically 7-8 times faster than the generic software methods:
+* drawLine (draw line between specified coordinates).
+* drawRect (draw rectangular box of specified start point, width and height).
+* fillRect (draw filled rectangle of specified start point, width and height).
+* drawFastVLine (draw vertical line of specified height).
+* drawFastHLine (draw horizontal line of specified width).
+* fillScreen (fill screen with specified color).
+
+The following SSD1331 hardware configuration functions are implemented:
+* setOrientation (8 permutations available - normal, 90, 180 and 270 rotation, each of which can also be mirrored). The 90 and 270 rotations represent portrait mode.
+**NB** drawing routines using standard GFX functions (including 'setRotation()') may not take into account hardware re-orientation, particularly portrait mode. 
+You may, for example, need to transpose 'width' and 'height' variables to achieve the desired result - see patternDemo example.
+* getOrientation (returns current hardware orientation - can check for portrait mode using the construct 'if (getOrientation() & SSD1331_PORTRAIT)'.
+* setGrayScale (by passing decimal gamma value).
+* resetGrayScale (linear gray scale i.e. gamma = 1.0).
+* clearWindow (more efficient than using fillScreen(BLACK)).
+* copyWindow (copy section of display to another location).
+* moveWindow ('move' section of display to another location - currently non-overlapping moves only).
 * dimWindow (dim section of display according to current grayscale setting)
-* display on/off/rotate/invert ('negative')
-* display scrolling (horizontal and/or vertical, all or selected rows)
-* goTo - sets graphics cursor for transactional bitmap operations
+* display on/off/rotate/invert ('negative').
+* display scrolling (horizontal and/or vertical, all or selected rows).
 
 ## To Do
 
+* Add more overloaded drawImage() functions to cater for raw bitmaps (i.e. not contained within a tImage or bwImage struct) in PROGMEM and RAM, providing hardware-optimised alternatives to the GFX drawBitmap() functions.
 * Implement improved orientation-specific boundary checking. For now, display will normally just wrap-around if coordinates exceed boundaries based on current SETREMAP mode.
-* Improve moveWindow to allow overlapping moves.
-* Various specialised bitmap image handling utilities
+* Improve moveWindow() to allow overlapping moves.
+* Various specialised bitmap image handling functions.
 
 ## Wiring Connections
 
