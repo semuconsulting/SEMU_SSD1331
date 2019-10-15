@@ -43,12 +43,6 @@ const tImage animation[8] = {
 
 SEMU_SSD1331 display = SEMU_SSD1331(&SPI, cs, dc, rst);
 
-uint8_t modes[] = {SSD1331_ROTATE_NORMAL, SSD1331_ROTATE_NORMALFLIP,
-                   SSD1331_ROTATE_180, SSD1331_ROTATE_180FLIP,
-                   SSD1331_ROTATE_090, SSD1331_ROTATE_090FLIP,
-                   SSD1331_ROTATE_270, SSD1331_ROTATE_270FLIP
-                  };
-
 void setup(void) {
 
   display.begin();
