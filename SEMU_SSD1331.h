@@ -208,7 +208,7 @@ class SEMU_SSD1331 : public Adafruit_SPITFT {
   void drawImage(const tImage *img);
   void drawImage(const bwImage *img);
   void drawMaskedImage(uint8_t x0, uint8_t y0, const tImage *img, const tImage *mask);
-  void XdrawMaskedSegment(uint8_t x0, uint8_t y0, const tImage *img, const tImage *mask);
+  void drawMaskedSegment(uint8_t x0, uint8_t y0, const tImage *img, const tImage *mask);
 	
   bool inBounds(int16_t x0, int16_t y0, int16_t x1 = 0, int16_t y1 = 0,
     int16_t x2 = 0, int16_t y2 = 0);

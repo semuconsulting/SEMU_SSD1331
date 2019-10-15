@@ -969,7 +969,7 @@ void SEMU_SSD1331::drawMaskedImage(uint8_t x0, uint8_t y0,
 	  @param    *mask pointer to PROGMEM mask bitmap
 */
 /**************************************************************************/
-void SEMU_SSD1331::XdrawMaskedSegment(uint8_t x0, uint8_t y0,
+void SEMU_SSD1331::drawMaskedSegment(uint8_t x0, uint8_t y0,
 	const tImage *img, const tImage *mask) {
 
 	uint16_t x, y;
