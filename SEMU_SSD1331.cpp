@@ -634,13 +634,14 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const tImage *img,
     @param    y0    y origin
     @param    *img  pointer to PROGMEM image bitmap
 		@param    fTrans forced transparency flag
-		@param    tColor forced transparency color (overriding iTcolor in tImage)
+		@param    tColor forced transparency color (overriding iTcolor in bwImage)
 */
 /**************************************************************************/
 void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const bwImage *img, 
 	bool fTrans, uint8_t fColor) {
 
-	uint16_t x, y, xS, yS, wS, hS, xT , yT, px, iTcolor, color;
+	uint16_t x, y, xS, yS, wS, hS, xT , yT, px;
+	uint8_t iTcolor, color;
 	bool isTrans, sk = false;
 	const uint8_t * imageData = PROGMEM_read(&img->data);// copy pixels from flash (program) memory into SRAM (data) memory
 	uint16_t iWidth = pgm_read_word(&img->width);      // copy image width
@@ -648,7 +649,7 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const bwImage *img,
 	uint16_t iSize = pgm_read_word(&img->pixels);      // copy number of pixels in image
 	//uint8_t  iDepth = pgm_read_byte(&img->depth);    // copy number of bits per pixel (i.e. colour depth)
 	isTrans = fTrans ? fTrans : pgm_read_byte(&img->istrans);   // whether image is transparent or not
-	iTcolor = fTrans ? fColor : pgm_read_word(&img->tcolor);    // color to be rendered as transparent, if above flag is set
+	iTcolor = fTrans ? fColor : pgm_read_byte(&img->tcolor);    // color to be rendered as transparent, if above flag is set
 	
 	startWrite();
 	
