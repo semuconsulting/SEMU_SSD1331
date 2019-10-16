@@ -186,7 +186,7 @@ class SEMU_SSD1331 : public Adafruit_SPITFT {
   void setAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
   
   void setWindow(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1);
-  void goTo(uint8_t x, uint8_t y);
+  void goTo(uint8_t x0, uint8_t y0);
   void enableDisplay(boolean enable);
   void setDisplayMode(uint8_t mode);
   void setOrientation(uint8_t orientation);
@@ -205,10 +205,10 @@ class SEMU_SSD1331 : public Adafruit_SPITFT {
   
   void drawImage(uint8_t x0, uint8_t y0, const tImage *img, 
 		bool fTrans = false, uint16_t fColor = 0x0000);
-  void drawImage(uint8_t x0, uint8_t y0, const bwImage *img,
-	  bool fTrans = false, uint8_t fColor = 0x0000);
+	void drawImage(uint8_t x0, uint8_t y0, const bwImage *img, 
+		bool fTrans = false, uint8_t fColor = 0x00);
   void drawImage(const tImage *img);
-  void drawImage(const bwImage *img);
+	void drawImage(const bwImage *img);
   void drawMaskedImage(uint8_t x0, uint8_t y0, const tImage *img, const tImage *mask);
   void drawMaskedSegment(uint8_t x0, uint8_t y0, const tImage *img, const tImage *mask);
 	
@@ -237,6 +237,7 @@ class SEMU_SSD1331 : public Adafruit_SPITFT {
    volatile uint16_t _backcolor = 0x0000;
    volatile uint8_t _scrollmode = SSD1331_SCROLL_OFF;
    volatile uint8_t _orientation = SSD1331_ROTATE_NORMAL;
+	 volatile bool _portrait = false; // signifies whether display is in portrait orientation
    volatile uint8_t _mode = SSD1331_CMD_NORMALDISPLAY;
 
 };
