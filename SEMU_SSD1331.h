@@ -203,8 +203,10 @@ class SEMU_SSD1331 : public Adafruit_SPITFT {
   void startScroll(void);
   void stopScroll(void);
   
-  void drawImage(uint8_t x0, uint8_t y0, const tImage *img);
-  void drawImage(uint8_t x0, uint8_t y0, const bwImage *img);
+  void drawImage(uint8_t x0, uint8_t y0, const tImage *img, 
+		bool fTrans = false, uint16_t fColor = 0x0000);
+  void drawImage(uint8_t x0, uint8_t y0, const bwImage *img,
+	  bool fTrans = false, uint8_t fColor = 0x0000);
   void drawImage(const tImage *img);
   void drawImage(const bwImage *img);
   void drawMaskedImage(uint8_t x0, uint8_t y0, const tImage *img, const tImage *mask);

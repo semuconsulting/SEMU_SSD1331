@@ -534,90 +534,22 @@ void SEMU_SSD1331::stopScroll() {
 
 /**************************************************************************/
 /*!
-    @brief  Paints a full colour image from flash memory (PROGMEM)
-    @param    x0    x (horizontal) starting display coordinate
-    @param    y0    y (vertical) starting display coordinate
-    @param    *img  pointer to PROGMEM image bitmap
-*/
-/**************************************************************************/
-/*
-void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const tImage *img) {
-
-	uint16_t x, y, px, color;
-	bool skipping = false;
-	const uint16_t * imageData = PROGMEM_read(&img->data);// copy pixels from flash (program) memory into SRAM (data) memory
-	uint16_t iWidth = pgm_read_word(&img->width);      // copy image width
-	uint16_t iHeight = pgm_read_word(&img->height);    // copy image height
-	uint16_t iSize = pgm_read_word(&img->pixels);      // copy number of pixels in image
-	//uint8_t  iDepth = pgm_read_byte(&img->depth);    // copy number of bits per pixel (i.e. colour depth)
-	bool     isTrans = pgm_read_byte(&img->istrans);   // whether image is transparent or not
-	uint16_t iTcolor = pgm_read_word(&img->tcolor);    // color to be rendered as transparent, if above flag is set
-
-	px = 0;
-	  
-  // if this is a non-transparent, full screen image, we can paint the entire display
-  // starting at pixel 0 using the hardware's cursor auto-increment
-  // takes around 24ms per image  
-	if (x0 == 0 && y0 == 0 && iWidth == _width && iHeight == _height && !isTrans) {
-
-    startWrite();
-    goTo(x0,y0);
-		for (px = 0; px < iSize; px++) {
-			color = pgm_read_word(&imageData[px]);
-			SPI_WRITE16(color);  //  pushColor now deprecated
-		}
-		endWrite();
-		
-	}
-	
-	// otherwise we have to reposition the cursor programmatically, which is about
-	// 10-15% slower
-	else {
-
-    startWrite();
-    goTo(x0,y0);
-		for (y = y0; y < y0 + iHeight; y++) {
-			goTo(x0,y);
-			for (x = x0; x < x0 + iWidth; x++) {
-				color = pgm_read_word(&imageData[px]);
-				// if this pixel transparent colour, skip it
-				if ((isTrans) && (color == iTcolor)) {
-					skipping = true;
-				}
-				// otherwise, draw the pixel
-				else {
-					if (skipping) {
-						skipping = false;
-						goTo(x,y);
-					}
-					//pushColor(color);
-					SPI_WRITE16(color); // pushColor now deprecated
-				}
-				px++;
-			}
-
-		}
-		endWrite();
-
-  }
-
-}
-*/
-
-/**************************************************************************/
-/*!
     @brief  Paints a full colour image from flash memory (PROGMEM),
 	    taking into account display orientation
-	    NB: in portrait orientation, image 'width' and 'height' are swapped, 
+	    NB: in portrait orientation, image 'width' and 'height' are transposed, 
 			but 'x' is still column and 'y' is still row in the display RAM
     @param    x0    x (horizontal) starting display coordinate
     @param    y0    y (vertical) starting display coordinate
     @param    *img  pointer to PROGMEM image bitmap
+		@param    fTrans forced transparency flag
+		@param    tColor forced transparency color (overriding iTcolor in tImage)
 */
 /**************************************************************************/
-void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const tImage *img) {
+void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const tImage *img, 
+	bool fTrans, uint16_t fColor) {
 
-	uint16_t x, y, px, color;
+	uint16_t x, y, sX, sY, tX, tY, px;
+	uint16_t color;
 	bool sk;
 	const uint16_t * imageData = PROGMEM_read(&img->data);// copy pixels from flash (program) memory into SRAM (data) memory
 	uint16_t iWidth = pgm_read_word(&img->width);      // copy image width
@@ -627,21 +559,34 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const tImage *img) {
 	bool     isTrans = pgm_read_byte(&img->istrans);   // whether image is transparent or not
 	uint16_t iTcolor = pgm_read_word(&img->tcolor);    // color to be rendered as transparent, if above flag is set
 
+  // if we're forcing a color to be transparent
+  if (fTrans) {
+		isTrans = fTrans;
+		iTcolor = fColor;
+	}
+	
 	startWrite();
 	
-	// set initial address pointer and window
+	// if in portrait orientation, transpose sense of height and width
 	if (_orientation & SSD1331_PORTRAIT) {
-		setWindow(x0, y0, x0+iHeight-1, y0+iWidth-1); 
+		tX = iHeight;
+		tY = iWidth;
+		sX = y0;
+		sY = x0;
 	}
 	else {
-		setWindow(x0, y0, x0+iWidth-1, y0+iHeight-1);
+		tX = iWidth;
+		tY = iHeight;
+		sX = x0;
+		sY = y0;
 	}
-		
+	// set initial address pointer to image dimensions
+	setWindow(x0, y0, x0+tX-1, y0+tY-1);
+
 	if (!isTrans) {
-	// if image is not transparent, no need to faff around with address pointers
-	// set address window to image dimensions, then just blit
-	// pixels in sequence allowing the hardware to auto-increment
-	// the address pointer after each pixel write
+	// if image is not transparent (i.e. we don't have to skip
+	// any pixels), just blit the pixels allowing the hardware
+	// to auto-increment the address pointer
 
 		for (px = 0; px < iSize; px++) {
 			color = pgm_read_word(&imageData[px]);
@@ -650,60 +595,52 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const tImage *img) {
 
 	}
 	else {
-	// if image is transparent, process as above but skip transparent pixels 
-	// and reset address window and pointer accordingly,
-	// taking into account portrait or landscape orientations
+	// if the image has some transparent pixels, we skip over those
+	// but then have to reset the address pointer manually
 		
 		px = 0;
+		x = sX;
 		sk = false;
-		
-		// in portrait orientation, address pointer auto-increments y over x
-		if (_orientation & SSD1331_PORTRAIT) {
-			for (x = x0; x < x0+iHeight; x++) {
-				if (sk) {
-					setWindow(x, y0, x0+iHeight-1, y0+iWidth-1); 	// reset pointer if we
-																												// skipped any pixels
-					sk = false;
+	
+		for (y = sY; y < sY+iHeight; y++) {			
+			// reset pointer if we skipped any transparent pixels
+			if (sk) {
+				if (_orientation & SSD1331_PORTRAIT) {
+					tX = x;
+					tY = y0;
 				}
-				for (y = y0; y < y0+iWidth; y++) {
-					color = pgm_read_word(&imageData[px]);
-					if (color == iTcolor) { // if it's a transparent pixel
-						sk = true;						// skip it, but remember to reset pointer
-																	// at start of new scan column
+				else {
+					tX = x0;
+					tY = y;
+				}
+				setWindow(tX, tY, x0+iHeight-1, y0+iWidth-1); 	
+				sk = false;
+			}
+			for (x = sX; x < sX+iWidth; x++) {
+				color = pgm_read_word(&imageData[px]);
+				// if it's a transparent pixel, skip it
+				if (color == iTcolor) {
+					sk = true;
+				}
+				// otherwise reset pointer to next non-transparent pixel and draw it
+				else {
+					if (_orientation & SSD1331_PORTRAIT) {
+						tX = y;
+						tY = x;
 					}
 					else {
-						setWindow(x, y, x0+iHeight-1, y0+iWidth-1); // reset pointer
-						SPI_WRITE16(color);
+						tX = x;
+						tY = y;
 					}
-					px++;				
+					setWindow(tX, tY, x0+iHeight-1, y0+iWidth-1); // reset pointer
+					SPI_WRITE16(color);
 				}
-			}	
-		}
-		// in landscape orientation, address pointer auto-increments x over y
-		else {
-			for (y = y0; y < y0+iHeight; y++) {			
-				if (sk) {
-					setWindow(x0, y, x0+iHeight-1, y0+iWidth-1); 	// reset pointer if we
-																												// skipped any pixels
-					sk = false;
-				}
-				for (x = x0; x < x0+iWidth; x++) {
-					color = pgm_read_word(&imageData[px]);
-					if (color == iTcolor) { // if it's a transparent pixel
-						sk = true;						// skip it, but remember to reset pointer
-																	// at start of new scan row
-					}
-					else {
-						setWindow(x, y, x0+iHeight-1, y0+iWidth-1); // reset pointer
-						SPI_WRITE16(color);
-					}
-					px++;
-				}
+				px++;
 			}
 		}
-			
+		
 	}
-	
+			
 	endWrite();
 			
 }
@@ -714,11 +651,15 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const tImage *img) {
     @param    x0    x (horizontal) starting display coordinate
     @param    y0    y (vertical) starting display coordinate
     @param    *img  pointer to PROGMEM image bitmap
+		@param    fTrans forced transparency flag
+		@param    fColor forced transparency color (overriding iTcolor in bwImage)
 */
 /**************************************************************************/
-void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const bwImage *img) {
+void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const bwImage *img, 
+	bool fTrans, uint8_t fColor) {
 	
-	uint16_t x, y, px, color;
+	uint16_t x, y, sX, sY, tX, tY, px;
+	uint8_t color;
 	bool sk;
 	const uint8_t * imageData = PROGMEM_read(&img->data);// copy pixels from flash (program) memory into SRAM (data) memory
 	uint16_t iWidth = pgm_read_word(&img->width);      // copy image width
@@ -728,21 +669,34 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const bwImage *img) {
 	bool     isTrans = pgm_read_byte(&img->istrans);   // whether image is transparent or not
 	uint16_t iTcolor = pgm_read_word(&img->tcolor);    // color to be rendered as transparent, if above flag is set
 
+  // if we're forcing a color to be transparent
+  if (fTrans) {
+		isTrans = fTrans;
+		iTcolor = fColor;
+	}
+	
 	startWrite();
 	
-	// set initial address pointer and window
+	// if in portrait orientation, transpose sense of height and width
 	if (_orientation & SSD1331_PORTRAIT) {
-		setWindow(x0, y0, x0+iHeight-1, y0+iWidth-1); 
+		tX = iHeight;
+		tY = iWidth;
+		sX = y0;
+		sY = x0;
 	}
 	else {
-		setWindow(x0, y0, x0+iWidth-1, y0+iHeight-1);
+		tX = iWidth;
+		tY = iHeight;
+		sX = x0;
+		sY = y0;
 	}
-		
+	// set initial address pointer to image dimensions
+	setWindow(x0, y0, x0+tX-1, y0+tY-1);
+
 	if (!isTrans) {
-	// if image is not transparent, no need to faff around with address pointers
-	// set address window to image dimensions, then just blit
-	// pixels in sequence allowing the hardware to auto-increment
-	// the address pointer after each pixel write
+	// if image is not transparent (i.e. we don't have to skip
+	// any pixels), just blit the pixels allowing the hardware
+	// to auto-increment the address pointer
 
 		for (px = 0; px < iSize; px++) {
 			color = pgm_read_byte(&imageData[px]);
@@ -751,60 +705,52 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const bwImage *img) {
 
 	}
 	else {
-	// if image is transparent, process as above but skip transparent pixels 
-	// and reset address window and pointer accordingly,
-	// taking into account portrait or landscape orientations
+	// if the image has some transparent pixels, we skip over those
+	// but then have to reset the address pointer manually
 		
 		px = 0;
+		x = sX;
 		sk = false;
-		
-		// in portrait orientation, address pointer auto-increments y over x
-		if (_orientation & SSD1331_PORTRAIT) {
-			for (x = x0; x < x0+iHeight; x++) {
-				if (sk) {
-					setWindow(x, y0, x0+iHeight-1, y0+iWidth-1); 	// reset pointer if we
-																												// skipped any pixels
-					sk = false;
+	
+		for (y = sY; y < sY+iHeight; y++) {			
+			// reset pointer if we skipped any transparent pixels
+			if (sk) {
+				if (_orientation & SSD1331_PORTRAIT) {
+					tX = x;
+					tY = y0;
 				}
-				for (y = y0; y < y0+iWidth; y++) {
-					color = pgm_read_byte(&imageData[px]);
-					if (color == iTcolor) { // if it's a transparent pixel
-						sk = true;						// skip it, but remember to reset pointer
-																	// at start of new scan column
+				else {
+					tX = x0;
+					tY = y;
+				}
+				setWindow(tX, tY, x0+iHeight-1, y0+iWidth-1); 	
+				sk = false;
+			}
+			for (x = sX; x < sX+iWidth; x++) {
+				color = pgm_read_byte(&imageData[px]);
+				// if it's a transparent pixel, skip it
+				if (color == iTcolor) {
+					sk = true;
+				}
+				// otherwise reset pointer to next non-transparent pixel and draw it
+				else {
+					if (_orientation & SSD1331_PORTRAIT) {
+						tX = y;
+						tY = x;
 					}
 					else {
-						setWindow(x, y, x0+iHeight-1, y0+iWidth-1); // reset pointer
-						SPI_WRITE16(color);
+						tX = x;
+						tY = y;
 					}
-					px++;				
+					setWindow(tX, tY, x0+iHeight-1, y0+iWidth-1); // reset pointer
+					SPI_WRITE16(color);
 				}
-			}	
-		}
-		// in landscape orientation, address pointer auto-increments x over y
-		else {
-			for (y = y0; y < y0+iHeight; y++) {			
-				if (sk) {
-					setWindow(x0, y, x0+iHeight-1, y0+iWidth-1); 	// reset pointer if we
-																												// skipped any pixels
-					sk = false;
-				}
-				for (x = x0; x < x0+iWidth; x++) {
-					color = pgm_read_byte(&imageData[px]);
-					if (color == iTcolor) { // if it's a transparent pixel
-						sk = true;						// skip it, but remember to reset pointer
-																	// at start of new scan row
-					}
-					else {
-						setWindow(x, y, x0+iHeight-1, y0+iWidth-1); // reset pointer
-						SPI_WRITE16(color);
-					}
-					px++;
-				}
+				px++;
 			}
 		}
-			
+		
 	}
-	
+			
 	endWrite();
 			
 }
@@ -817,7 +763,7 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const bwImage *img) {
 /**************************************************************************/
 void SEMU_SSD1331::drawImage(const tImage *img) {
 
-	drawImage(0,0,img);
+	drawImage(0,0,img, false, 0x0000);
 
 }
 
@@ -829,59 +775,9 @@ void SEMU_SSD1331::drawImage(const tImage *img) {
 /**************************************************************************/
 void SEMU_SSD1331::drawImage(const bwImage *img) {
 
-	drawImage(0,0,img);
+	drawImage(0,0,img, false, 0x0000);
 
 }
-
-/**************************************************************************/
-/*!
-    @brief  Paints a masked full colour image from flash memory (PROGMEM) with a 
-    specified 16-bit colour mask image
-    @param    x0    x (horizontal) starting display coordinate
-    @param    y0    y (vertical) starting display coordinate
-    @param    *img  pointer to PROGMEM image bitmap
-	  @param    *mask pointer to PROGMEM mask bitmap
-*/
-/**************************************************************************/
-/*
-void SEMU_SSD1331::drawMaskedImage(uint8_t x0, uint8_t y0,
-	const tImage *img, const tImage *mask) {
-
-	uint16_t x, y;
-	uint16_t iColour, mColour;
-	uint16_t px;
-	const uint16_t * imageData = PROGMEM_read(&img->data);  // copy image pixels from flash (program) memory into SRAM (data) memory
-	const uint16_t * maskData = PROGMEM_read(&mask->data);  // copy mask pixels from flash (program) memory into SRAM (data) memory
-	uint16_t iWidth = pgm_read_word(&img->width);           // copy image width
-	uint16_t iHeight = pgm_read_word(&img->height);         // copy image height
-	//uint16_t iSize = pgm_read_word(&img->pixels);           // copy number of pixels in image
-	//uint8_t iDepth = pgm_read_byte(&img->depth);            // copy number of bits per pixel (i.e. colour depth)
-	uint16_t iTcolor = pgm_read_word(&mask->tcolor);        // color to be rendered as transparent, if above flag is set
-
-	px = 0;
-
-  startWrite();
-  goTo(x0, y0);                          		// initialise cursor to top left
-  
-	for (y = y0; y < y0 + iHeight; y++) { 
-		goTo(x0,y);
-		for (x = x0; x < x0 + iWidth; x++) {
-			iColour = pgm_read_word(&imageData[px]);   // read in the image data
-			mColour = pgm_read_word(&maskData[px]);		// read in the mask data
-			if (mColour == iTcolor) {   // if the mask pixel is transparent, draw the image pixel	  
-				SPI_WRITE16(iColour); // pushColor now deprecated
-			}
-			else {						// otherwise, draw the mask pixel
-				SPI_WRITE16(mColour); // pushColor now deprecated
-			}
-			px++;
-		}
-
-	}
-	endWrite();
-
-}
-*/
 
 /**************************************************************************/
 /*!
@@ -897,7 +793,7 @@ void SEMU_SSD1331::drawMaskedImage(uint8_t x0, uint8_t y0,
 void SEMU_SSD1331::drawMaskedImage(uint8_t x0, uint8_t y0,
 	const tImage *img, const tImage *mask) {
 
-	uint16_t x, y;
+	uint16_t x, y, sX, sY;
 	uint16_t iColor, mColor;
 	uint16_t px;
 	const uint16_t * imageData = PROGMEM_read(&img->data);  // copy image pixels from flash (program) memory into SRAM (data) memory
@@ -910,48 +806,34 @@ void SEMU_SSD1331::drawMaskedImage(uint8_t x0, uint8_t y0,
 
   startWrite();
 	
-	// set initial address pointer and window
-	if (_orientation & SSD1331_PORTRAIT) {
-		setWindow(x0, y0, x0+iHeight-1, y0+iWidth-1); 
-	}
-	else {
-		setWindow(x0, y0, x0+iWidth-1, y0+iHeight-1);
-	}
-  
 	px = 0;
 		
 	// in portrait orientation, address pointer auto-increments y over x
 	if (_orientation & SSD1331_PORTRAIT) {
-		for (x = x0; x < x0+iHeight; x++) {
-			for (y = y0; y < y0+iWidth; y++) {
-				iColor = pgm_read_word(&imageData[px]);   // read in the image data
-				mColor = pgm_read_word(&maskData[px]);		// read in the mask data
-				if (mColor == iTcolor) { 
-					SPI_WRITE16(iColor);
-				}
-				else {
-					SPI_WRITE16(mColor);
-				}
-				px++;				
-			}
-		}	
+		setWindow(x0, y0, x0+iHeight-1, y0+iWidth-1);
+		sY = x0;
+		sX = y0;	
 	}
 	// in landscape orientation, address pointer auto-increments x over y
 	else {
-		for (y = y0; y < y0+iHeight; y++) {			
-			for (x = x0; x < x0+iWidth; x++) {
-				iColor = pgm_read_word(&imageData[px]);   // read in the image data
-				mColor = pgm_read_word(&maskData[px]);		// read in the mask data
-				if (mColor == iTcolor) {
-					SPI_WRITE16(iColor);
-				}
-				else {
-					SPI_WRITE16(mColor);
-				}
-				px++;
-			}
-		}
+		setWindow(x0, y0, x0+iWidth-1, y0+iHeight-1);
+		sY = y0;
+		sX = x0;
 	}
+	
+	for (y = sY; y < sY+iHeight; y++) {
+		for (x = sX; x < sX+iWidth; x++) {
+			iColor = pgm_read_word(&imageData[px]);   // read in the image data
+			mColor = pgm_read_word(&maskData[px]);		// read in the mask data
+			if (mColor == iTcolor) { 
+				SPI_WRITE16(iColor);
+			}
+			else {
+				SPI_WRITE16(mColor);
+			}
+			px++;				
+		}
+	}	
 	
 	endWrite();
 

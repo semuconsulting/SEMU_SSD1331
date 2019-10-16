@@ -85,7 +85,7 @@ void orientationTest() {
       x = (display.width() - ix) / 2;
       y = (display.height() - iy) / 2;
     }
-    display.drawImage(x, y, &test64x64, true, 0xffff);
+    display.drawImage(x, y, &test64x64, false, 0xffff);
     delay(PAUSE);
     display.fillScreen(GREEN);
     ix = 48;
@@ -111,7 +111,7 @@ void orientationTest() {
       x = (display.width() - ix) / 2;
       y = (display.height() - iy) / 2;
     }
-    display.drawImage(x, y, &test48x61, true, 0xf543);
+    display.drawImage(x, y, &test48x61, false, 0xf543);
     delay(PAUSE);
 
   }
