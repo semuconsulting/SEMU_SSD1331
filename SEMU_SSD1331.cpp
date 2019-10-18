@@ -833,11 +833,11 @@ void SEMU_SSD1331::drawMaskedSegment(uint8_t x0, uint8_t y0,
 		for (x = 0; x < TFTWIDTH; x++) {
 			iColour = pgm_read_word(&imageData[pxi]);   	// read in the image data
 			mColour = pgm_read_word(&maskData[pxm]);		 // read in the mask data
-			if (mColour == iTcolor) {   					// if the mask pixel is transparent, draw the mask pixel	  
-				SPI_WRITE16(mColour);
-			}
-			else {											// otherwise, draw the image pixel
+			if (mColour == iTcolor) {   					// if the mask pixel is transparent, draw the image pixel	  
 				SPI_WRITE16(iColour);
+			}
+			else {											// otherwise, draw the mask pixel
+				SPI_WRITE16(mColour);
 			}
 			pxi++;
 			pxm++;	

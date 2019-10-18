@@ -1,24 +1,16 @@
 /*******************************************************************************************************************************
 
   SEMU_SSD1331 library blinkingEyes demo
-  
-  Illustrates use of SEMU_SSD1331 drawMaskedSegment() function, which displays a transparent mask 
-  image over a moveable 'segment' of a larger underlying background image. Very fast frame rates are 
-  supported (up to around 40 fps). In this demo, the masks represent eyelids and the underlying 
+
+  Illustrates use of SEMU_SSD1331 drawMaskedSegment() function, which displays a transparent mask
+  image over a moveable 'segment' of a larger underlying background image. Very fast frame rates are
+  supported (up to around 40 fps). In this demo, the masks represent eyelids and the underlying
   image represents an eyeball, thus simulating a pair of moving, blinking eyes.
 
-  This is a more simplistic, 'cartoony' approach than the impressive 'Uncanny Eyes' project for 
+  This is a more simplistic, 'cartoony' approach than the impressive 'Uncanny Eyes' project for
   SSD1351 OLEDs, but the drawMaskedSegment() function is readily adaptable to other applications.
 
-  NB: This demo requires about 150kB of program storage space, so WON'T run on a low-end Arduino like a UNO.
-  NB: Only works properly in landscape orientation at the moment.
-
-  Originally done for an 'animatronix' dragon project in which the motion of a dragon's 'eyes' could
-  be controlled via a wireless gamepad controller or thumb potentiometer, but also switched to an
-  autonomous 'auto' demonstration mode. In this example all the manual remote control stuff has been stripped to 
-  leave only the OLED 'auto' functionality. The original target was a Teensy 3.2 - MCUs with more program memory 
-  available (e.g. Teensy 3.6 or 4.0) could accommodate more sophisticated animations.
-  ( https://github.com/WeatherwaxCosplay/Robodragon if anyone's interested. )
+  NB: This demo requires about 140kB of program storage space, so WON'T run on a low-end Arduino like a UNO.
 
   WeatherWax Cosplay / SEMU Consulting - 2018
 
@@ -38,13 +30,13 @@
 
 #include <SEMU_SSD1331.h>
 
-#include "_images/deye.h"
-#include "_images/maskl1.h"
-#include "_images/maskl2.h"
-#include "_images/maskr1.h"
-#include "_images/maskr2.h"
-#include "_images/mask3.h"
-#include "_images/mask4.h"
+#include "_images/eyeball.h"
+#include "_images/blink1m.h"
+#include "_images/blink2m.h"
+#include "_images/blink3m.h"
+#include "_images/blink4m.h"
+#include "_images/blink5m.h"
+#include "_images/blink6m.h"
 
 #define sclk 13   // marked SCL or CK on OLED board
 #define mosi 11   // marked SDA or SI or DIN on OLED board
@@ -63,15 +55,15 @@
 #define RIGHT 1
 #define AUTOMIN 300 // governs how often eyeball moves
 #define AUTOMAX 1500
-#define BLINKMIN 500 // governs how often eyelid blinks
-#define BLINKMAX 2500
+#define BLINKMIN 1000 // governs how often eyelid blinks
+#define BLINKMAX 4000
 
-const tImage maskL[4] = {
-  maskl1, maskl2, mask3, mask4
+const tImage mask[6] = {
+  blink1m, blink2m, blink3m, blink4m, blink5m, blink6m
 };
-const tImage maskR[4] = {
-  maskr1, maskr2, mask3, mask4
-};
+//const tImage maskR[4] = {
+//  maskr1, maskr2, mask3, mask4
+//};
 
 SEMU_SSD1331 displays[] = {
   SEMU_SSD1331(cs, dc, rst),
@@ -103,6 +95,8 @@ void setup(void) {
   displays[RIGHT].begin();
 #endif
 
+  displays[LEFT].setOrientation(SSD1331_ROTATE_NORMALFLIP); // set the left display to mirror the right
+  displays[RIGHT].setOrientation(SSD1331_ROTATE_NORMAL);
   randomSeed(analogRead(0));
 
 }
@@ -123,7 +117,7 @@ void loop() {
 // by random blink interval
 //
 // For the purposes of this demo the x,y coordinates are generated automatically,
-// but they could just as easily be provided via, say, analogRead() of a thumb 
+// but they could just as easily be provided via, say, analogRead() of a thumb
 // joystick potentiometer or wireless gamepad controller.
 //**************************************************************************
 void setEyes(uint16_t x, uint16_t y) {
@@ -133,10 +127,12 @@ void setEyes(uint16_t x, uint16_t y) {
     x = map(x, 0, 1023, displays[LEFT].TFTWIDTH - 1, 0);
     y = map(y, 0, 1023, displays[LEFT].TFTHEIGHT - 1, 0);
 
-    displays[LEFT].drawMaskedSegment(x, y, &deye, &maskL[blinkMaskL]);
+    // mirror sense of x coordinate in left display
+    displays[LEFT].drawMaskedSegment(64-x, y, &eyeball, &mask[blinkMaskL]);
 #if defined(DUALDISPLAYS)
-    displays[RIGHT].drawMaskedSegment(x, y, &deye, &maskR[blinkMaskR]);
+    displays[RIGHT].drawMaskedSegment(x, y, &eyeball, &mask[blinkMaskR]);
 #endif
+
   }
 
 }
@@ -156,34 +152,54 @@ void blinkTimer () {
         blinkMaskR = 0;
         break;
       case 1:
-        blinkPeriod = millis() + 25;
+        blinkPeriod = millis() + 3;
         blinkMaskL = 1;
         blinkMaskR = 1;
         break;
       case 2:
-        blinkPeriod = millis() + 25;
+        blinkPeriod = millis() + 3;
         blinkMaskL = 2;
         blinkMaskR = 2;
         break;
       case 3:
-        blinkPeriod = millis() + 25;
+        blinkPeriod = millis() + 3;
         blinkMaskL = 3;
         blinkMaskR = 3;
         break;
       case 4:
-        blinkPeriod = millis() + 30;
+        blinkPeriod = millis() + 3;
+        blinkMaskL = 4;
+        blinkMaskR = 4;
+        break;
+      case 5:
+        blinkPeriod = millis() + 3;
+        blinkMaskL = 5;
+        blinkMaskR = 5;
+        break;
+      case 6:
+        blinkPeriod = millis() + 3;
+        blinkMaskL = 4;
+        blinkMaskR = 4;
+        break;
+      case 7:
+        blinkPeriod = millis() + 4;
+        blinkMaskL = 3;
+        blinkMaskR = 3;
+        break;
+      case 8:
+        blinkPeriod = millis() + 6;
         blinkMaskL = 2;
         blinkMaskR = 2;
         break;
-      case 5:
-        blinkPeriod = millis() + 30;
+      case 9:
+        blinkPeriod = millis() + 6;
         blinkMaskL = 1;
         blinkMaskR = 1;
         break;
     }
 
     blinkIter++;
-    if (blinkIter > 5) {
+    if (blinkIter > 9) {
       blinkIter = 0;
     }
 
@@ -206,8 +222,8 @@ void autoTimer () {
       case false:
         autoPeriod = millis() + random(AUTOMIN, AUTOMAX);
         inMotion = true;
-        targetx = random(200, 823);
-        targety = random(200, 823);
+        targetx = random(430, 823); // adjusts extent of left/right eyeball movement
+        targety = random(350, 680); // adjusts extent of up/down eyeball movement
         break;
       case true:
         autoPeriod = millis() + 10;
