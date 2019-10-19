@@ -32,7 +32,8 @@ $(end_block_header)
 
 $(start_block_images_table)
 static const uint$(img_data_block_size)_t image_data_$(doc_name_ws)[$(out_blocks_count)] PROGMEM = {
-    $(out_image_data)
+    $(out_image_preview)
+		$(out_image_data)
 };
 const tImage $(doc_name_ws) = { image_data_$(doc_name_ws), $(out_image_width), $(out_image_height),
     $(out_blocks_count), $(img_data_block_size), false, 0xffff };

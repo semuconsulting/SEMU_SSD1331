@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<preset version="3">
-  <name>SSD1331_bwImage</name>
+<preset>
+  <name>c565Image</name>
   <prepare>
     <convType>2</convType>
     <monoType>1</monoType>
@@ -12,12 +12,13 @@
     <bandWidth>1</bandWidth>
     <useCustomScript>0</useCustomScript>
     <customScript><![CDATA[]]></customScript>
+    <customPreprocessScript><![CDATA[]]></customPreprocessScript>
   </prepare>
   <matrix>
     <maskUsed>0000ffff</maskUsed>
     <maskAnd>ffffffff</maskAnd>
     <maskOr>00000000</maskOr>
-    <maskFill>ffffffff</maskFill>
+    <maskFill>0000ffff</maskFill>
     <operations count="3">
       <operation index="0">
         <mask>00f80000</mask>
@@ -47,16 +48,28 @@
     <compressionRle>0</compressionRle>
     <compressionRleMinLength>2</compressionRleMinLength>
     <blockPrefix><![CDATA[0x]]></blockPrefix>
-    <blockSuffix><![CDATA[]]></blockSuffix>
+    <blockSuffix><![CDATA[empty]]></blockSuffix>
     <blockDelimiter><![CDATA[, ]]></blockDelimiter>
+    <numeralSystem>16</numeralSystem>
+    <previewPrefix><![CDATA[// ]]></previewPrefix>
+    <previewSuffix><![CDATA[empty]]></previewSuffix>
+    <previewDelimiter><![CDATA[empty]]></previewDelimiter>
+    <previewLevels><![CDATA[∙
+░
+▒
+▓
+█]]></previewLevels>
   </image>
   <font>
     <bom>0</bom>
     <sortOrder>1</sortOrder>
-    <codec>ASMO-708</codec>
+    <codec>UTF-8</codec>
+    <escapeChars>@"'</escapeChars>
+    <escapePrefix>\</escapePrefix>
+    <escapeSuffix></escapeSuffix>
   </font>
   <templates>
-    <images>:/templates/bwImage.tmpl</images>
+    <images>:/templates/c565Image.tmpl</images>
     <fonts>:/templates/font_convert</fonts>
   </templates>
 </preset>
