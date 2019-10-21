@@ -128,7 +128,7 @@ template<typename T> T PROGMEM_read(const T * sce) {
 	return temp;
 }
 
-// full colour (16-bit) image
+// colour R5G6B5 (16-bit per pixel) image
 typedef struct PROGMEM {
 	const uint16_t *data;
 	uint16_t width;
@@ -139,7 +139,29 @@ typedef struct PROGMEM {
 	uint16_t tcolor;    // transparency color
 } tImage;
 
-// monochrome (8-bit) image
+// colour R3G3B2 (8-bit per pixel) image
+typedef struct PROGMEM {
+	const uint8_t *data;
+	uint16_t width;
+	uint16_t height;
+	uint16_t pixels;	// total number of pixels in image
+	uint8_t depth; 		// bits per pixel
+	bool istrans;       // if transparent
+	uint8_t tcolor;    // transparency color
+} c332Image;
+
+// grayscale (8-bit per pixel) image
+typedef struct PROGMEM {
+	const uint8_t *data;
+	uint16_t width;
+	uint16_t height;
+	uint16_t pixels;	// total number of pixels in image
+	uint8_t depth; 		// bits per pixel
+	bool istrans;       // if transparent
+	uint8_t tcolor;     // transparency color
+} gsImage;
+
+// monochrome (1-bit per pixel) image
 typedef struct PROGMEM {
 	const uint8_t *data;
 	uint16_t width;
@@ -149,27 +171,6 @@ typedef struct PROGMEM {
 	bool istrans;       // if transparent
 	uint8_t tcolor;     // transparency color
 } bwImage;
-
-// RGB colour structure 
-struct Color {
-	uint8_t r;
-	uint8_t g;
-	uint8_t b;
-};
-
-// Point structure 
-struct Point {
-	int16_t x;
-	int16_t y;
-};
-
-// Area structure 
-struct Area {
-	int16_t x0;
-	int16_t y0;
-	int16_t x1;
-	int16_t y1;
-};
 
 /// Class to manage hardware interface with SSD1331 chipset
 class SEMU_SSD1331 : public Adafruit_SPITFT {
@@ -205,9 +206,15 @@ class SEMU_SSD1331 : public Adafruit_SPITFT {
   
   void drawImage(uint8_t x0, uint8_t y0, const tImage *img, 
 		bool fTrans = false, uint16_t fColor = 0x0000);
-	void drawImage(uint8_t x0, uint8_t y0, const bwImage *img, 
+	void drawImage(uint8_t x0, uint8_t y0, const c332Image *img, 
+		bool fTrans = false, uint8_t fColor = 0x00);
+	void drawImage(uint8_t x0, uint8_t y0, const gsImage *img, 
+		bool fTrans = false, uint8_t fColor = 0x00);
+  void drawImage(uint8_t x0, uint8_t y0, const bwImage *img, 
 		bool fTrans = false, uint8_t fColor = 0x00);
   void drawImage(const tImage *img);
+	void drawImage(const c332Image *img);
+	void drawImage(const gsImage *img);
 	void drawImage(const bwImage *img);
   void drawMaskedImage(uint8_t x0, uint8_t y0, const tImage *img, const tImage *mask);
   void drawMaskedSegment(uint8_t x0, uint8_t y0, const tImage *img, const tImage *mask);
@@ -243,8 +250,8 @@ class SEMU_SSD1331 : public Adafruit_SPITFT {
 };
 
 // Out of class color helper functions
-uint16_t rgb_to_pixel(Color col);
-uint16_t rgb_to_pixel(uint8_t r, uint8_t g, uint8_t b);
-Color pixel_to_rgb(uint16_t pixel);
+inline uint16_t col332_to_col565(uint8_t pixel);
+inline uint16_t gs_to_col565(uint8_t pixel);
+inline uint16_t bw_to_col565(uint8_t by, uint8_t b, uint16_t wc = 0xffff, uint16_t bc = 0x0000);
 
 #endif

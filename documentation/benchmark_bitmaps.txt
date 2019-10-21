@@ -1,0 +1,43 @@
+Start of benchmark for SEMU drawImage() vs Adafruit drawRGBBitmap():
+(running on an 8-bit Arduino Nano)
+
+drawImage for 6 x 1024 pixel R5G6B5 images took : 42
+drawRGBBitmap for 6 x 1024 pixel R5G6B5 images took : 292
+drawImage() is 6.95 times faster than drawRGBBitmap().
+drawImage for 6 x 1024 pixel R5G6B5 images took : 42
+drawRGBBitmap for 6 x 1024 pixel R5G6B5 images took : 292
+drawImage() is 6.95 times faster than drawRGBBitmap().
+drawImage for 6 x 1024 pixel R5G6B5 images took : 42
+drawRGBBitmap for 6 x 1024 pixel R5G6B5 images took : 293
+drawImage() is 6.98 times faster than drawRGBBitmap().
+drawImage for 6 x 1024 pixel R5G6B5 images took : 42
+drawRGBBitmap for 6 x 1024 pixel R5G6B5 images took : 293
+drawImage() is 6.98 times faster than drawRGBBitmap().
+drawImage for 6 x 1024 pixel R5G6B5 images took : 41
+drawRGBBitmap for 6 x 1024 pixel R5G6B5 images took : 293
+drawImage() is 7.15 times faster than drawRGBBitmap().
+drawImage for 6 x 1024 pixel R5G6B5 images took : 41
+drawRGBBitmap for 6 x 1024 pixel R5G6B5 images took : 293
+drawImage() is 7.15 times faster than drawRGBBitmap().
+drawImage for 6 x 1024 pixel R5G6B5 images took : 41
+drawRGBBitmap for 6 x 1024 pixel R5G6B5 images took : 293
+drawImage() is 7.15 times faster than drawRGBBitmap().
+drawImage for 6 x 1024 pixel R5G6B5 images took : 41
+drawRGBBitmap for 6 x 1024 pixel R5G6B5 images took : 292
+drawImage() is 7.12 times faster than drawRGBBitmap().
+drawImage for 6 x 1024 pixel R5G6B5 images took : 42
+drawRGBBitmap for 6 x 1024 pixel R5G6B5 images took : 292
+drawImage() is 6.95 times faster than drawRGBBitmap().
+drawImage for 6 x 1024 pixel R5G6B5 images took : 42
+drawRGBBitmap for 6 x 1024 pixel R5G6B5 images took : 292
+drawImage() is 6.95 times faster than drawRGBBitmap().
+drawImage for 6 x 1024 pixel R5G6B5 images took : 42
+drawRGBBitmap for 6 x 1024 pixel R5G6B5 images took : 293
+drawImage() is 6.98 times faster than drawRGBBitmap().
+drawImage for 6 x 1024 pixel R5G6B5 images took : 42
+drawRGBBitmap for 6 x 1024 pixel R5G6B5 images took : 293
+drawImage() is 6.98 times faster than drawRGBBitmap().
+drawImage for 6 x 1024 pixel R5G6B5 images took : 41
+drawRGBBitmap for 6 x 1024 pixel R5G6B5 images took : 293
+drawImage() is 7.15 times faster than drawRGBBitmap().
+drawImage for 6 x 1024 pixel R5G6B5 images took : 41

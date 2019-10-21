@@ -540,7 +540,7 @@ void SEMU_SSD1331::stopScroll() {
 
 /**************************************************************************/
 /*!
-    @brief  Paints a 16-bit color image from flash memory (PROGMEM),
+    @brief  Paints a 16-bit R5B6G5 color image from flash memory (PROGMEM),
 	    taking into account display orientation
 
     @param    x0    x origin
@@ -627,17 +627,17 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const tImage *img,
 
 /**************************************************************************/
 /*!
-    @brief  Paints an 8-bit color image from flash memory (PROGMEM),
+    @brief  Paints an 8-bit R3G3B2 color image from flash memory (PROGMEM),
 	    taking into account display orientation
 
     @param    x0    x origin
     @param    y0    y origin
     @param    *img  pointer to PROGMEM image bitmap
 		@param    fTrans forced transparency flag
-		@param    tColor forced transparency color (overriding iTcolor in bwImage)
+		@param    tColor forced transparency color (overriding iTcolor in gsImage)
 */
 /**************************************************************************/
-void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const bwImage *img, 
+void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const c332Image *img, 
 	bool fTrans, uint8_t fColor) {
 
 	uint16_t x, y, xS, yS, wS, hS, xT , yT, px;
@@ -670,7 +670,7 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const bwImage *img,
 
 		for (px = 0; px < iSize; px++) {
 			color = pgm_read_byte(&imageData[px]);
-			SPI_WRITE16(color);
+			SPI_WRITE16(col332_to_col565(color));
 		}
 
 	}
@@ -700,7 +700,7 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const bwImage *img,
 					xT = _portrait ? y : x;
 					yT = _portrait ? x : y;
 					setWindow(xT, yT, x0+wS-1, y0+hS-1); // reset pointer
-					SPI_WRITE16(color);
+					SPI_WRITE16(col332_to_col565(color));
 				}
 				px++;
 			}
@@ -708,6 +708,142 @@ void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const bwImage *img,
 		
 	}
 			
+	endWrite();
+			
+}
+
+/**************************************************************************/
+/*!
+    @brief  Paints an 8-bit grayscale image from flash memory (PROGMEM),
+	    taking into account display orientation
+
+    @param    x0    x origin
+    @param    y0    y origin
+    @param    *img  pointer to PROGMEM image bitmap
+		@param    fTrans forced transparency flag
+		@param    tColor forced transparency color (overriding iTcolor in gsImage)
+*/
+/**************************************************************************/
+void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const gsImage *img, 
+	bool fTrans, uint8_t fColor) {
+
+	uint16_t x, y, xS, yS, wS, hS, xT , yT, px;
+	uint8_t iTcolor, color;
+	bool isTrans, sk = false;
+	const uint8_t * imageData = PROGMEM_read(&img->data);// copy pixels from flash (program) memory into SRAM (data) memory
+	uint16_t iWidth = pgm_read_word(&img->width);      // copy image width
+	uint16_t iHeight = pgm_read_word(&img->height);    // copy image height
+	uint16_t iSize = pgm_read_word(&img->pixels);      // copy number of pixels in image
+	//uint8_t  iDepth = pgm_read_byte(&img->depth);    // copy number of bits per pixel (i.e. colour depth)
+	isTrans = fTrans ? fTrans : pgm_read_byte(&img->istrans);   // whether image is transparent or not
+	iTcolor = fTrans ? fColor : pgm_read_byte(&img->tcolor);    // color to be rendered as transparent, if above flag is set
+	
+	startWrite();
+	
+	// if in portrait orientation, transpose sense of height and width
+	xS = _portrait ? y0 : x0;
+	yS = _portrait ? x0 : y0;
+	wS = _portrait ? iHeight : iWidth;
+	hS = _portrait ? iWidth : iHeight;
+	
+	// set initial address window to image dimensions
+	setWindow(x0, y0, x0+wS-1, y0+hS-1);
+
+	if (!isTrans) {
+	// if image is not transparent (i.e. we don't have to skip
+	// any pixels), just blit the pixels allowing the hardware
+	// to auto-increment the address pointer within the specified
+	// address window
+
+		for (px = 0; px < iSize; px++) {
+			color = pgm_read_byte(&imageData[px]);
+			SPI_WRITE16(gs_to_col565(color));
+		}
+
+	}
+	else {
+	// if the image has some transparent pixels, we skip over those
+	// but then have to reset the address window manually
+		
+		px = 0;
+		x = xS;
+	
+		for (y = yS; y < yS+iHeight; y++) {			
+			// reset address window only if we skipped any transparent pixels
+			if (sk) {
+				xT = _portrait ? x : x0;
+				yT = _portrait ? y0 : y;
+				setWindow(xT, yT, x0+wS-1, y0+hS-1); 					
+				sk = false;
+			}
+			for (x = xS; x < xS+iWidth; x++) {
+				color = pgm_read_byte(&imageData[px]);
+				// if it's a transparent pixel, skip it
+				if (color == iTcolor) {
+					sk = true;
+				}
+				// otherwise reset address window to this pixel and draw it
+				else {
+					xT = _portrait ? y : x;
+					yT = _portrait ? x : y;
+					setWindow(xT, yT, x0+wS-1, y0+hS-1); // reset pointer
+					SPI_WRITE16(gs_to_col565(color));
+				}
+				px++;
+			}
+		}
+		
+	}
+			
+	endWrite();
+			
+}
+
+/**************************************************************************/
+/*!
+    @brief  Paints an 1-bit monochrome image from flash memory (PROGMEM),
+	    taking into account display orientation
+			(NO TRANSPARENCY SUPPORT IN THIS FUNCTION FOR NOW)
+
+    @param    x0    x origin
+    @param    y0    y origin
+    @param    *img  pointer to PROGMEM image bitmap
+		@param    fTrans forced transparency flag
+		@param    tColor forced transparency color (overriding iTcolor in gsImage)
+*/
+/**************************************************************************/
+void SEMU_SSD1331::drawImage(uint8_t x0, uint8_t y0, const bwImage *img, 
+	bool fTrans, uint8_t fColor) {
+
+	uint16_t x, y, xS, yS, wS, hS, xT , yT, px;
+	uint8_t iTcolor, by, b;
+	bool isTrans, sk = false;
+	const uint8_t * imageData = PROGMEM_read(&img->data);// copy pixels from flash (program) memory into SRAM (data) memory
+	uint16_t iWidth = pgm_read_word(&img->width);      // copy image width
+	uint16_t iHeight = pgm_read_word(&img->height);    // copy image height
+	uint16_t iSize = pgm_read_word(&img->pixels);      // copy number of pixels in image
+	//uint8_t  iDepth = pgm_read_byte(&img->depth);    // copy number of bits per pixel (i.e. colour depth)
+	//isTrans = fTrans ? fTrans : pgm_read_byte(&img->istrans);   // whether image is transparent or not
+	//iTcolor = fTrans ? fColor : pgm_read_byte(&img->tcolor);    // color to be rendered as transparent, if above flag is set
+	
+	startWrite();
+	
+	// if in portrait orientation, transpose sense of height and width
+	xS = _portrait ? y0 : x0;
+	yS = _portrait ? x0 : y0;
+	wS = _portrait ? iHeight : iWidth;
+	hS = _portrait ? iWidth : iHeight;
+	
+	// set initial address window to image dimensions
+	setWindow(x0, y0, x0+wS-1, y0+hS-1);
+
+	for (px = 0; px < iSize; px++) {
+		by = pgm_read_byte(&imageData[px]);
+		for (b = 0; b < 8; b++) {
+			SPI_WRITE16(bw_to_col565(by, b));
+		}
+	}
+		
 	endWrite();
 			
 }
@@ -727,6 +863,31 @@ void SEMU_SSD1331::drawImage(const tImage *img) {
 /**************************************************************************/
 /*!
     @brief  Paints an 8-bit color image from flash memory (PROGMEM) at default coordinates
+    @param    *img  pointer to PROGMEM image bitmap
+*/
+/**************************************************************************/
+void SEMU_SSD1331::drawImage(const c332Image *img) {
+
+	drawImage(0,0,img, false, 0x00);
+
+}
+
+/**************************************************************************/
+/*!
+    @brief  Paints an 8-bit grayscale image from flash memory (PROGMEM) at default coordinates
+    @param    *img  pointer to PROGMEM image bitmap
+*/
+/**************************************************************************/
+void SEMU_SSD1331::drawImage(const gsImage *img) {
+
+	drawImage(0,0,img, false, 0x00);
+
+}
+
+
+/**************************************************************************/
+/*!
+    @brief  Paints an 1-bit monochrome image from flash memory (PROGMEM) at default coordinates
     @param    *img  pointer to PROGMEM image bitmap
 */
 /**************************************************************************/
@@ -1021,12 +1182,12 @@ uint8_t SEMU_SSD1331::getMode(void){
 /**************************************************************************/
 /*!
     @brief  Check that coordinates are within physical display boundaries
-	@param  x0 first x coordinate
-	@param  y0 first y coordinate
-	@param  x1 second x coordinate (optional, defaults to 0)
-	@param  y1 second y coordinate (optional, defaults to 0)
-	@param  x2 third x coordinate (optional, defaults to 0)
-	@param  y2 third y coordinate (optional, defaults to 0)
+	  @param  x0 first x coordinate
+	  @param  y0 first y coordinate
+	  @param  x1 second x coordinate (optional, defaults to 0)
+	  @param  y1 second y coordinate (optional, defaults to 0)
+	  @param  x2 third x coordinate (optional, defaults to 0)
+	  @param  y2 third y coordinate (optional, defaults to 0)
 	
 */
 /**************************************************************************/
@@ -1042,42 +1203,36 @@ bool SEMU_SSD1331::inBounds(int16_t x0, int16_t y0, int16_t x1,
 
 /**************************************************************************/
 /*!
-    @brief  Converts individual RGB values into single R5G6B5 pixel
-	@param  r red value
-	@param  g green value
-	@param  r blue value
+    @brief  Simple conversion of 8-bit R3G3B2 pixel to 16-bit R5G6B5 pixel
+      without use of color lookup palette
+	  @param  pixel 8-bit R3G3B2 color pixel
 */
-/**************************************************************************/
-uint16_t rgb_to_pixel(uint8_t r, uint8_t g, uint8_t b) {
-	uint16_t pix = (r << 11) + (g << 5) + b;
-	return pix;
+/**************************************************************************/ 
+uint16_t col332_to_col565(uint8_t pixel) {
+	return ((pixel & 0b11100000) << 8) + ((pixel & 0b00011100) << 6)
+   	 + ((pixel & 0b00000011) << 3);
 }
 
 /**************************************************************************/
 /*!
-    @brief  Converts Color structure into single R5G6B5 pixel
-	@param  col Color structure
+    @brief  Converts 8-bit grayscale to 16-bit R5G6B5 pixel
+	  @param  pixel 8-bit grayscale value
 */
 /**************************************************************************/
-uint16_t rgb_to_pixel(Color col) {
-	uint16_t pix = (col.r << 11) + (col.g << 5) + col.b;
-	return pix;
+uint16_t gs_to_col565(uint8_t pixel) {
+	return ((pixel/8) << 11) + ((pixel/8) << 5) + pixel/8;
 }
+
 
 /**************************************************************************/
 /*!
-    @brief  Converts single R5G6B5 pixel into Color structure
-	@param  pixel R5G6B5 pixel
-
+    @brief  Converts selected bit from 1-bit monochrome byte to 16-bit R5G6B5 pixel
+	  @param  by byte containing 8 1-bit monochrome pixels
+		@param  b position of bit (0-7)
+		@param  wc color to paint if bit set (defaults to WHITE)
+		@param  bc color to paint if bit unset (defaults to BLACK)
 */
 /**************************************************************************/
-Color pixel_to_rgb(uint16_t pixel) {
-	Color col;
-	col.r = (pixel & 0b1111100000000000) >> 11;
-	col.g = (pixel & 0b0000011111100000) >> 5;
-	col.b = pixel & 0b000000000011111;
-	return col;
+uint16_t bw_to_col565(uint8_t by, uint8_t b, uint16_t wc, uint16_t bc) {
+	return (by >> b & 1) ? wc : bc;
 }
-
-
-

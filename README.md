@@ -21,9 +21,8 @@ The tImage (16-bit RGB color) and bwImage (8-bit monochrome) templates in the lc
 ## Current Status
 
 The following structured bitmap display functions are implemented using various hardware and software optimisations:
-* drawImage (from flash (PROGMEM) memory). Utilises hardware pointer auto-increment to improve speed - draws full screen (96x64) image in about 17ms; 
-roughly 20% faster than generic methods. 
-Includes support for transparent images with specified transparency colour.  See animation example.
+* drawImage (from flash (PROGMEM) memory). Utilises hardware pointer auto-increment to improve speed - roughly 6-8 times faster than the generic software methods.
+Supports 16-bit (R5G6B5) color, 8-bit (R3G3B2) color and 8-bit grayscale bitmaps. Includes support for transparent images with specified transparency colour.  See animation example.
 * drawMaskedImage (draw 'masked' image with specified mask overlay (matte) and colour). See matte example.
 
 The following functions must be used within an SPI transaction (i.e. preceded by startWrite() and followed by endWrite();

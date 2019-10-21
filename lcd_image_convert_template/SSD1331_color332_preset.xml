@@ -21,17 +21,17 @@
     <maskFill>000000ff</maskFill>
     <operations count="3">
       <operation index="0">
-        <mask>00f80000</mask>
+        <mask>00e00000</mask>
         <shift>16</shift>
         <left>0</left>
       </operation>
       <operation index="1">
-        <mask>0000fc00</mask>
+        <mask>0000e000</mask>
         <shift>11</shift>
         <left>0</left>
       </operation>
       <operation index="2">
-        <mask>000000f8</mask>
+        <mask>000000c0</mask>
         <shift>6</shift>
         <left>0</left>
       </operation>
@@ -69,7 +69,7 @@
     <escapeSuffix></escapeSuffix>
   </font>
   <templates>
-    <images>:/templates/c332Image</images>
+    <images>:/templates/c332Image.tmpl</images>
     <fonts>:/templates/font_convert</fonts>
   </templates>
 </preset>
