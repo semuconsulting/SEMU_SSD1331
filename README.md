@@ -21,7 +21,7 @@ The tImage (16-bit RGB color) and bwImage (8-bit monochrome) templates in the lc
 ## Current Status
 
 The following structured bitmap display functions are implemented using various hardware and software optimisations:
-* drawImage (from flash (PROGMEM) memory). Utilises hardware pointer auto-increment to improve speed - roughly 6-8 times faster than the generic software methods.
+* drawImage (from flash (PROGMEM) memory). Utilises hardware pointer auto-increment to improve speed - roughly 6-8 times faster than the generic software methods (4-6 times faster on an ESP32).
 Supports 16-bit (R5G6B5) color, 8-bit (R3G3B2) color and 8-bit grayscale bitmaps. Includes support for transparent images with specified transparency colour.  See animation example.
 * drawMaskedImage (draw 'masked' image with specified mask overlay (matte) and colour). See matte example.
 
@@ -99,13 +99,15 @@ CS (OC) on 2nd board    | Digital pin 6  | SPI Chip Select for second OLED
 
 MCU                 | Tested Works | Doesn't Work | Not Tested  | Notes
 ------------------- | :----------: | :----------: | :---------: | --------------------
-Arduino UNO         |      X       |              |             | Very limited memory, sketches with >1 bitmap won't load
-Arduino Micro       |      X       |              |             | Very limited memory, sketches with >1 bitmap won't load
+Arduino UNO         |      X       |              |             | Very limited memory
+Arduino Micro       |      X       |              |             | Very limited memory
+Arduino Nano        |      X       |              |             | Very limited memory
 Arduino Zero M0     |      X       |              |             | 
 Arduino DUE         |      X       |              |             | 
 Adafruit Metro M4   |              |       	      |     X       |
 Teensy 3.2 @ 72MHz  |      X       |              |             | 
 Teensy 3.6 @ 180MHz |      X       |              |             |
 Teensy 4.0 @ 600MHz |      X       |              |             | Use latest Teensyduino >=1.48
+ESP32 Dev @ 240MHz  |      X       |              |             | Use software SPI constructor
 
 <!-- END COMPATIBILITY TABLE -->

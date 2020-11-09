@@ -18,15 +18,23 @@
  ****************************************************/
 
 #include <SEMU_SSD1331.h>
-//#include <Adafruit_SSD1331.h>
+
+//#define ESP32  // uncomment to configure for ESP32 Devkit
 
 // You can use any (4 or) 5 pins
+#if defined ESP32 // these are the usual hardware SPI pins for EPS32
+#define sclk 18   // marked SCL or CK on OLED board
+#define mosi 23   // marked SDA or SI on OLED board
+#define cs   5    // marked CS or OC on OLED board
+#define rst  16   // marked RES or R on OLED board
+#define dc   17   // marked DC or sometimes (confusingly) RS on OLED board
+#else             // these are the usual hardware SPI pins for Arduino
 #define sclk 13   // marked SCL or CK on OLED board
 #define mosi 11   // marked SDA or SI on OLED board
 #define cs   10   // marked CS or OC on OLED board
 #define rst  9    // marked RES or R on OLED board
 #define dc   8    // marked DC or sometimes (confusingly) RS on OLED board
-
+#endif
 
 // Color definitions
 #define	BLACK           0x0000
@@ -39,14 +47,17 @@
 #define WHITE           0xFFFF
 
 // Option 1: use any pins but a little slower
-//Adafruit_SSD1331 display = Adafruit_SSD1331(cs, dc, mosi, sclk, rst);
+//SEMU_SSD1331 display = SEMU_SSD1331(cs, dc, mosi, sclk, rst);
 
 // Option 2: must use the hardware SPI pins
 // (for UNO thats sclk = 13 and sid = 11) and pin 10 must be
 // an output. This is much faster - also required if you want
 // to use the microSD card (see the image drawing example)
+#if defined ESP32 // use software SPI constructor for ESP32
+SEMU_SSD1331 display = SEMU_SSD1331(cs, dc, mosi, sclk, rst);
+#else
 SEMU_SSD1331 display = SEMU_SSD1331(&SPI, cs, dc, rst);
-//Adafruit_SSD1331 display = Adafruit_SSD1331(&SPI, cs, dc, rst);
+#endif
 
 float p = 3.1415926;
 
