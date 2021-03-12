@@ -16,6 +16,9 @@
 #define BM32
 #include "google32.h"
 
+//#define ESP32  // uncomment to configure for ESP32 Devkit
+
+
 /*
 SD1331 Pin	    Arduino	ESP8266		rPi
 1 GND
@@ -27,12 +30,19 @@ SD1331 Pin	    Arduino	ESP8266		rPi
 7 CS			10	GPIO04/D2	GPIO08		
 */
 // You can use any (4 or) 5 pins
-// hwspi hardcodes those pins, no need to redefine them
+#if defined ESP32 // these are the usual hardware SPI pins for EPS32
+#define sclk 18   // marked SCL or CK on OLED board
+#define mosi 23   // marked SDA or SI on OLED board
+#define cs   5    // marked CS or OC on OLED board
+#define rst  16   // marked RES or R on OLED board
+#define dc   17   // marked DC or sometimes (confusingly) RS on OLED board
+#else             // these are the usual hardware SPI pins for Arduino
 #define sclk 13   // marked SCL or CK on OLED board
 #define mosi 11   // marked SDA or SI on OLED board
 #define cs   10   // marked CS or OC on OLED board
 #define rst  9    // marked RES or R on OLED board
 #define dc   8    // marked DC or sometimes (confusingly) RS on OLED board
+#endif
 
 // Option 1: use any pins but a little slower
 //#pragma message "Using SWSPI"
@@ -44,7 +54,11 @@ SD1331 Pin	    Arduino	ESP8266		rPi
 // to use the microSD card (see the image drawing example)
 #pragma message "Using HWSPI"
 //Adafruit_SSD1331 display = Adafruit_SSD1331(&SPI, cs, dc, rst);
+#if defined ESP32 // use software SPI constructor for ESP32
+SEMU_SSD1331 display = SEMU_SSD1331(cs, dc, mosi, sclk, rst);
+#else
 SEMU_SSD1331 display = SEMU_SSD1331(&SPI, cs, dc, rst);
+#endif
 
 // This could also be defined as display.color(255,0,0) but those defines
 // are meant to work for adafruit_gfx backends that are lacking color()

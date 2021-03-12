@@ -9,9 +9,9 @@
  ****************************************************/
 //#define DEBUG
 
-#include <SEMU_SSD1331.h>
+//#include <SEMU_SSD1331.h>
 
-//#define ESP32  // uncomment to configure for ESP32 Devkit
+#define ESP32  // uncomment to configure for ESP32 Devkit
 
 // You can use any (4 or) 5 pins
 #if defined ESP32 // these are the usual hardware SPI pins for EPS32

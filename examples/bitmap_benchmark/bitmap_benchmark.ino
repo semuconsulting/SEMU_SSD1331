@@ -12,6 +12,8 @@
  ****************************************************/
 //#define DEBUG
 
+//#define ESP32  // uncomment to configure for ESP32 Devkit
+
 #include <SEMU_SSD1331.h>
 //#include "testcard_c565.h"    // 16-bit R5G6B5 format
 //#include "testcard_c332.h"    // 8-bit R3G3B2 format
@@ -23,23 +25,28 @@
 //#include "rgb_bw.h"           // 8-bit grayscale format
 #include "google32_c565.h"
 
+// You can use any (4 or) 5 pins
+#if defined ESP32 // these are the usual hardware SPI pins for EPS32
+#define sclk 18   // marked SCL or CK on OLED board
+#define mosi 23   // marked SDA or SI on OLED board
+#define cs   5    // marked CS or OC on OLED board
+#define rst  16   // marked RES or R on OLED board
+#define dc   17   // marked DC or sometimes (confusingly) RS on OLED board
+#else             // these are the usual hardware SPI pins for Arduino
 #define sclk 13   // marked SCL or CK on OLED board
 #define mosi 11   // marked SDA or SI on OLED board
 #define cs   10   // marked CS or OC on OLED board
 #define rst  9    // marked RES or R on OLED board
 #define dc   8    // marked DC or sometimes (confusingly) RS on OLED board
-
-#define cs2   6   // marked CS or OC on OLED board
-#define rst2  99  // marked RES or R on OLED board
+#endif
 
 #define PAUSE 1000
 
-SEMU_SSD1331 display = {
-  SEMU_SSD1331(cs, dc, rst)
-};
-//SEMU_SSD1331 display2 = {
-//  SEMU_SSD1331(cs2, dc, rst2)
-//};
+#if defined ESP32 // use software SPI constructor for ESP32
+SEMU_SSD1331 display = SEMU_SSD1331(cs, dc, mosi, sclk, rst);
+#else
+SEMU_SSD1331 display = SEMU_SSD1331(&SPI, cs, dc, rst);
+#endif
 
 unsigned long t0, t1, t2;
 uint8_t c, r;
@@ -49,8 +56,6 @@ void setup(void) {
   Serial.begin(9600);
   display.begin();
   display.clearWindow();
-  //  display2.begin();
-  //  display2.clearWindow();
   Serial.println("Start of benchmark for SEMU drawImage() vs Adafruit drawRGBBitmap():");
   Serial.println("(running on an 8-bit Arduino Nano)");
   Serial.println("");
